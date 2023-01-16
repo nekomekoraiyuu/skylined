@@ -3,7 +3,7 @@
 # Version number goes below; You can check the formatting in readme below if you don't know how does it work
 *Version=1/a/n
 # Commands to be executed while updating
-<-----EXECUTE-START----->
+<-----EXECUTE----->
 # Put your commands here; And it'll be executed after downloading this update file
-<-----EXECUTE-END----->
+<-----EXECUTE----->
 #### End of the update script
