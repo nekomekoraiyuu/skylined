@@ -1,0 +1,16 @@
+#### Skylined manual ##### 
+[ Press q to exit from manual ]
+
+Hai and hello there  welcome to skylined!
+The no joke, user-friendly and 
+"high-quality" nsp updater for skyline
+emulator thats revised on existing updater
+scripts and making it better
+
+### Using the nsp updater ###
+
+You might see 4 sections in this program
+which are for nsp updating, checking for
+newer versions, about etc.
+
+To get started.
