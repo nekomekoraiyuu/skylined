@@ -100,7 +100,8 @@ fi
 echo -e "* Updating available lists and installed packages [...]"
 sleep 0.7
 # Update termux packages since lets assume user has installed for the first time
-apt update &> /dev/null && apt upgrade -y &> /dev/null || echo -e "$ERR_STANDARD" && exit 1
+apt-get update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+apt-get upgrade -y &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
 # Then Start installing some required binaries
 echo -e "* Installing required binaries; please wait [...]"
 sleep 1
@@ -120,9 +121,9 @@ sleep 0.6
 # clone skylined script from github
 if [ "$canary_build" = "true" ];
   then
-    git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 || echo -e "$ERR_STANDARD" && exit 1
+    git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
   else
-    git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 || echo -e "$ERR_STANDARD" && exit 1
+    git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
 fi
 ### todo
 echo -e "* Setting up skylined..."
@@ -130,8 +131,8 @@ echo -e "* Setting up skylined..."
 mkdir -p $TEMP_PATH
 cd $TEMP_PATH
 # clone hacpack and hactool 
-git clone https://github.com/SciresM/hactool ./hactool_source || echo -e "$ERR_STANDARD" && exit 1
-git clone https://github.com/The-4n/hacPack ./hacpack_source || echo -e "$ERR_STANDARD" && exit 1
+git clone https://github.com/SciresM/hactool ./hactool_source || { echo -e "$ERR_STANDARD"; exit 1; }
+git clone https://github.com/The-4n/hacPack ./hacpack_source || { echo -e "$ERR_STANDARD"; exit 1; }
 # Setup hactool
 echo -e "* Setting up hactool.."
 cd ./hactool_source
@@ -139,7 +140,7 @@ git checkout c2c907430e674614223959f0377f5e71f9e44a4a
 mv config.mk.template config.mk
 rm main.c && mv main.temp main.c
 # start building
-make &>/dev/null || echo -e "* Failed to build hactool! Please try again?" && exit 1
+make &>/dev/null || { echo -e "* Failed to build hactool! Please try again?"; exit 1; }
 chmod +x hactool
 mv hactool $SKYLINED_PATH/binaries/
 echo -e "* Successfully set up hactool!"
@@ -151,7 +152,7 @@ cd ./hacpack_source
 git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88
 mv config.mk.template config.mk
 # Start building hacpack
-make &>/dev/null || echo -e "* Failed to build hacpack! Please try again?" && exit 1
+make &>/dev/null || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
 chmod +x hacpack
 mv hacpack $SKYLINED_PATH/binaries/
 cd ~
