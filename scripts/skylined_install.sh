@@ -118,8 +118,8 @@ fi
 echo -e "* Updating available lists and installed packages [...]"
 sleep 0.7
 # Update termux packages since lets assume user has installed for the first time
-apt-get update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-apt-get upgrade -y &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+apt update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+apt upgrade -y &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
 # Then Start installing some required binaries
 echo -e "* Installing required binaries; please wait [...]"
 sleep 1
