@@ -115,7 +115,7 @@ if [ "$prod_present" = "true" ];
     # funny rm -rf cmd 
     rm -rf exefs romfs 
     # generate meta NCA from patched NCA and control NCA 
-    ./hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nca/$patchednca" --controlnca="nca/$nca_control" --titleid="$titleid" --outdir="nca" 
+    ./hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nca/$patchednca" --controlnca="nca/$nca_control" --titleid="$rom_titleid" --outdir="nca" 
     # Now repack all NCAs into one nsp 
     mkdir nsp 
     ./hacpack --type="nsp" --ncadir="nca" --titleid="$rom_titleid" --outdir="nsp"
