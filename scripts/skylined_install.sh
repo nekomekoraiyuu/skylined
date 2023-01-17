@@ -30,8 +30,7 @@ stuff_inst () {
 			if [ "$(apt search $specified_pkg 2> /dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" = "$specified_pkg" ];
 				then
 					sleep 0.2
-					echo "$specified_pkg"
-					apt install $specified_pkg 2> /dev/null
+					apt install $specified_pkg -y 2> /dev/null
 				else
 				# If the package is not available in the repository then prompt the user to change
 					echo -e "The package $specified_pkg is not available in your current repository.. Do you want to switch?\b[Enter] to switch, [no] to cancel switching; exit"
@@ -40,7 +39,7 @@ stuff_inst () {
 						then
 							termux-switch-repo
 							apt update 2> /dev/null
-							apt install $specified_pkg 2> /dev/null
+							apt install $specified_pkg -y 2> /dev/null
 						else
 						echo -e "* Canceled switching repositories; The Package $specific_pkg is not available in current repository; Aborting installation"
 						exit 1
