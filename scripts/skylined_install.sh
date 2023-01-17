@@ -8,6 +8,7 @@ SKYLINED_PATH=~/skylined
 TEMP_PATH=~/skylined_installer_temp
 EXIT_STATUS="NULL"
 ERR_STANDARD="* Failed; Perhaps try checking your\ninternet connection and try again?"
+LOOPING="true"
 ###### canary check #####
 if [ "$1" = "--canary" ];
   then
@@ -82,6 +83,8 @@ sleep 1
 if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install" | cut -d "=" -f 2)" = "true" ];
 	then
 		echo -e "* Looks like you had installed skylined before do you want to force reinstall it? (Which will remove existing skylined files and start from scratch.) Press [Y] to proceed $(echo '\\') Press [N] To Cancel."
+		while [ "$LOOPING" = "true" ];
+		do
 		read -rsn 1 ASK_INPT
 		if [[ "$ASK_INPT" = [yY] ]];
 			then
@@ -90,12 +93,12 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 				rm -rf $CONFIG_DIR 2>/dev/null
 				rm -rf "$PATH/skylined" 2>/dev/null
 				"* Successfully removed existing files, proceeding with the script!"
+				break
 		elif [[ "$ASK_INPT" = [nN] ]];
 			then
 				echo -e "* Cancelled." && exit 0
-		else
-			echo -e "* Invalid input. Exiting." && exit 1
 		fi
+		done
 fi
 #####
 ####### Make a config directory if it simply doesnt exist
