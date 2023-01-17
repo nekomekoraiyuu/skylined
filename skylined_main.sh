@@ -120,7 +120,7 @@ input_valid="true"
 clear
 # Max selections
 limit_options=4
-echo -e "$menu_header"
+echo -e "$menu_header\nPress Q To Exit"
 selection_option=$(echo -e "$selection_option")
 case "$selection_option" in
 	# Bookmark // erase this
@@ -381,9 +381,14 @@ fi
 # Lets make a while loop so that the program doesnt exit
 while [ $first_loop = "true" ];
 	do
+	###### Main menu #######
 		# If the selection screen is in default // menu then show main menu // home
 		if [ "$selection_screen" = "main" ];
 			then
+				if [ "$INPT_LAST" = "qBACK" ];
+					then
+					exit 0
+				fi
 				# Show main menu
 				menu_main
 				# Use if statement to check keys to avoid the same text printed being twice from main menu function
