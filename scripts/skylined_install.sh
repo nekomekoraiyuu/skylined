@@ -62,7 +62,7 @@ clean_exit () {
     then
        rm -rf $TEMP_PATH 2>/dev/null 
        # check if skylined was finished installing before
-       if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install" | cut -d "=" -f 2)" != "true" ];
+       if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install=" | cut -d "=" -f 2)" != "true" ];
         then
          rm -rf $SKYLINED_PATH 2>/dev/null 
        fi
@@ -76,7 +76,7 @@ clean_exit () {
 trap clean_exit EXIT
 # Show header (skylined indeed)
 clear
-echo -e "Skylined installer $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY\e[39m"; fi) - nekomekoraiyuu & markus tech\n____________________"
+echo -e "\e[1mSkylined installer $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY\e[39m"; fi) - nekomekoraiyuu &\n markus tech\n____________________\e[22m"
 sleep 1
 ## Check if skylined was finished installing before
 if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install" | cut -d "=" -f 2)" = "true" ];
@@ -88,6 +88,7 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 				# If Yes then remove skylined, config directory
 				rm -rf $SKYLINED_PATH 2>/dev/null
 				rm -rf $CONFIG_DIR 2>/dev/null
+				rm -rf "$PATH/skylined" 2>/dev/null
 				"* Successfully removed existing files, proceeding with the script!"
 		elif [[ "$ASK_INPT" = [nN] ]];
 			then
@@ -96,6 +97,20 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 			echo -e "* Invalid input. Exiting." && exit 1
 		fi
 fi
+#####
+####### Make a config directory if it simply doesnt exist
+## If there is no config dir then make one
+if [ -z $(ls ~/.config 2>/dev/null | grep -oh "skylined" ) ];
+	then
+		mkdir -p $CONFIG_DIR
+fi
+echo -e "---- SKYLINED-CONFIG ----\nhas_skylined_script_run_once=true\nhas_skylined_installer_finished_install=false\nhas_run_skylined_script_once=false\ncanary=false\nnameby_rom=titleid\nshow_console_logging=false" > $CONFIG_DIR/skylined_script.conf
+echo -e "* Created config directory."
+if [ "$1" = "--canary" ];
+	then
+		sed -i 's/canary=false/canary=true/' $CONFIG_DIR/skylined_script.conf
+fi
+##### 
 # Now do main stuff 
 echo -e "* Updating available lists and installed packages [...]"
 sleep 0.7
@@ -121,26 +136,31 @@ sleep 0.6
 # clone skylined script from github
 if [ "$canary_build" = "true" ];
   then
-    git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
+    git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
   else
-    git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
+    git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
 fi
+###
+echo -e "* Done!" && sleep 0.4
 ### todo
-echo -e "* Setting up skylined..."
+echo -e "* Now setting up skylined..."
 # Setup a temporary directory
 mkdir -p $TEMP_PATH
 cd $TEMP_PATH
 # clone hacpack and hactool 
-git clone https://github.com/SciresM/hactool ./hactool_source || { echo -e "$ERR_STANDARD"; exit 1; }
-git clone https://github.com/The-4n/hacPack ./hacpack_source || { echo -e "$ERR_STANDARD"; exit 1; }
+echo -e "* Cloning hactool and hacpack..."
+git clone https://github.com/SciresM/hactool ./hactool_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+git clone https://github.com/The-4n/hacPack ./hacpack_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+echo -e "* Done!" && sleep 0.4
 # Setup hactool
 echo -e "* Setting up hactool.."
+sleep 0.4
 cd ./hactool_source
-git checkout c2c907430e674614223959f0377f5e71f9e44a4a
+git checkout c2c907430e674614223959f0377f5e71f9e44a4a &>/dev/null
 mv config.mk.template config.mk
-rm main.c && mv main.temp main.c
+sed -i "372d" main.c
 # start building
-make &>/dev/null || { echo -e "* Failed to build hactool! Please try again?"; exit 1; }
+make || { echo -e "* Failed to build hactool! Please try again?"; exit 1; }
 chmod +x hactool
 mv hactool $SKYLINED_PATH/binaries/
 echo -e "* Successfully set up hactool!"
@@ -149,19 +169,19 @@ sleep 0.3
 # Now setup hacpack
 echo -e "* Setting up hacpack.."
 cd ./hacpack_source
-git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88
+git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88 &>/dev/null
 mv config.mk.template config.mk
 # Start building hacpack
-make &>/dev/null || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
+make || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
 chmod +x hacpack
 mv hacpack $SKYLINED_PATH/binaries/
 cd ~
 # finished setting up now remove temp directory
 rm -rf $TEMP_PATH
 # setup skylined shortcut
-echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > /bin/skylined
-chmod +x /bin/skylined
-echo -e "* Everything is done!\nYou can now launch the script by typing \e[34mskylined\e[39min the terminal!"
+echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > "$PATH/skylined"
+chmod +x "$PATH/skylined"
+echo -e "* Everything is done!\nYou can now launch the script by typing\n\e[34mskylined\e[39m in the terminal!"
 # Update config file and Exit since the script is finished
 sed -i 's/has_skylined_installer_finished_install=false/has_skylined_installer_finished_install=true/' $CONFIG_DIR/skylined_script.conf
 exit 0
