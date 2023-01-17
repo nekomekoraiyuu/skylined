@@ -101,7 +101,7 @@ if [ "$prod_present" = "true" ];
     mv ./hacpack ./hactool ./temporary_build/
     cd ./temporary_build
     # Now get title id from base program nca 
-    rom_titleid=$(./hactool $nca_base | grep -oP "(?<=Title ID:\s{27}).*") 
+    rom_titleid=$(./hactool "$nca_base" | grep -oP "(?<=Title ID:\s{27}).*") 
     # Now make romfs and exefs directory and extract base NCA and update NCA to it
     mkdir romfs exefs 
     ./hactool --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
@@ -123,10 +123,10 @@ if [ "$prod_present" = "true" ];
     # now move updated rom to output dir \\ also check if the user preferred to save as base game name or title id to output dir 
    if [ "$pref_romname" = "titleid" ];
     then
-      mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/input/$rom_titleid[Updated].nsp
+      mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/$rom_titleid[Updated].nsp
     elif [ "$pref_romname" = "basename" ];
       then
-        mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/input/$base_selected[Updated].nsp
+        mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/$base_selected[Updated].nsp
    fi 
    rm -rf $SKYLINED_PATH/temp
     ##### End
