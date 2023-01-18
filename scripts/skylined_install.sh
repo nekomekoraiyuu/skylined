@@ -17,7 +17,28 @@ if [ "$1" = "--canary" ];
       canary_build="false"
 fi
 #############
-####### FUNCTIONS SECTION ####
+######## Distro \\ CHECK #########
+# Check if its wsl/Linux (Ubuntu distro)
+if [ "$(grep -h "^ID=" < /etc/os-release | cut -d "=" -f 2)" = "ubuntu" ];
+	then
+		# Then specify the distro name
+		DISTRO_TYPE="ubuntu"
+# Else if check if its termux
+elif [ -n "$(echo -e "$TERMUX_VERISON")" ];
+	then
+		# Check if its old termux version (Google play release)
+		if [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -gt "01130" ];
+			then
+				DISTRO_TYPE="termux"
+			else
+				DISTRO_TYPE="termux_old"
+		fi
+# Else the distro is unknown
+else
+	DISTRO_TYPE="unknown"
+fi
+##########
+####### FUNCTIONS SECTION #########
 # Make a function to check and install packages
 stuff_inst () {
 	# Make a variable that stores value from arg
@@ -29,17 +50,25 @@ stuff_inst () {
 			# If not installed  Check if that package is in the repository
 			if [ "$(apt search $specified_pkg 2> /dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" = "$specified_pkg" ];
 				then
-					sleep 0.2
-					apt install $specified_pkg -y 2> /dev/null
+					sleep 0.2			
+					apt-get -y -o Dpkg::Options::="--force-confnew" install "$specified_pkg" 2> /dev/null
 				else
 				# If the package is not available in the repository then prompt the user to change
 					echo -e "The package $specified_pkg is not available in your current repository.. Do you want to switch?\b[Enter] to switch, [no] to cancel switching; exit"
 					read -re ASK_CHOICE
 					if [[ -z "$ASK_CHOICE" ]];
 						then
-							termux-switch-repo
-							apt update 2> /dev/null
-							apt install $specified_pkg -y 2> /dev/null
+							#  Aaaaaaa
+							if [ "$DISTRO_TYPE" = "termux" ];
+								then
+									termux-switch-repo
+							elif [ "$DISTRO_TYPE" = "ubuntu" ];
+								then
+									echo -e "* Switching via cli is not implemented in this script;\nYou can change repository using GUI from settings in ubuntu"
+									exit 1
+							fi
+							apt-get update 2> /dev/null
+							apt-get -y -o Dpkg::Options::="--force-confnew" install $specified_pkg 2> /dev/null
 						else
 						echo -e "* Canceled switching repositories; The Package $specific_pkg is not available in current repository; Aborting installation"
 						exit 1
@@ -64,7 +93,12 @@ clean_exit () {
        # check if skylined was finished installing before
        if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install=" | cut -d "=" -f 2)" != "true" ];
         then
-         rm -rf $SKYLINED_PATH 2>/dev/null 
+         rm -rf $SKYLINED_PATH 2>/dev/null
+       fi
+       ### Remove Temporary downloaded file on interrupt (If using old termux version)
+       if [ "$DISTRO_TYPE" = "termux_old" ];
+       	then
+       		rm -rf ~/termux_git.apk
        fi
      else
      rm -rf $TEMP_PATH 2>/dev/null
@@ -78,6 +112,67 @@ trap clean_exit EXIT
 clear
 echo -e "\e[1mSkylined installer $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY\e[39m"; fi) - nekomekoraiyuu &\n markus tech\n____________________\e[22m"
 sleep 1
+####### DISTRO CHECK ###### (again)
+# If The uses uses old termux version do not start the script.
+if [ "$DISTRO_TYPE" = "termux_old" ];
+	then
+		echo -e "* Old termux version detected (Last playstore release?);\nYou have to use the latest version of termux to install the script.;\nDo you want to download the recommended termux version? [Y/N]"
+		while [ "$LOOPING" = "true" ];
+			do
+				# Read input
+				read -rsn1 ASK_INPUT
+				case $ASK_INPUT in
+				[yY])
+					# Check if newer version of termux was downloaded before
+					if [ -z $(ls ~ | grep -oh "termux_git.apk") ];
+						then
+							echo -e "* Downloading the recommended termux version: 0.118.0 from Github;\nPlease wait..."
+							sleep 0.5
+							curl -SLo ~/termux_git.apk https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk || { echo -e "* Failed to download!\nPlease try checking your internet connection."; rm -rf ~/termux_git.apk; exit 1; }
+							echo -e "* Download successful!\nPlease allow access files permission to save the downloaded apk file to downloads directory."
+							sleep 0.8
+						else
+							echo -e "* Downloaded newer version of termux found in ~ directory!;\nTrying to move it into downloads directory.."
+							sleep 0.7
+					fi
+					# Check if storage dir exists
+					if [ -z $(ls ~ | grep -oh "storage") ];
+						then
+							termux-setup-storage <<< y
+					fi
+					cp ~/termux_git.apk ~/storage/downloads/ || { echo -e "* Failed to copy to downloads directory; perhaps you haven't given termux access files permission?\nIf so please give access files permission and re-run the script!"; exit 1; }
+					echo -e "* File has been saved to '[Internal Storage]/downloads/termux_git.apk' directory!;\nPlease uninstall the current termux app and install it from the saved directory."
+					exit 0
+					;;
+				[nN])
+					echo -e "* Cancelled. To get the latest termux version please use these official links;\nGithub: https://github.com/termux/termux-app/releases\nFdroid: https://f-droid.org/en/packages/com.termux/"
+					exit 1
+					;;
+				esac
+			done
+# If use newer termux version then only print; Using termux
+elif [ "$DISTRO_TYPE" = "termux" ];
+	then
+		echo -e "* Termux detected; Proceeding with the script."
+		sleep 0.3
+fi
+### 
+##### If wsl/Linux (Ubuntu) detected
+if [ "$DISTRO_TYPE" = "ubuntu" ];
+	then
+		echo -e "* WSL/Linux (Ubuntu Distribution) detected; Proceeding with the script."
+		# Check if running as root \\ sudo
+		if [ "$EUID" -ne 0 ];
+			then
+				echo "* Please run the script as root! (use with sudo)"
+				exit 1
+		fi
+elif [ "$DISTRO_TYPE" = "unknown" ];
+	then
+		echo -e "* WSL/Linux detected;\nbut looks like the script doesn't support your current distribution;\nPlease make a issue in the github repository to add support for your current distro.\nThank you--"
+		exit 1
+fi
+#####
 ## Check if skylined was finished installing before
 if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install" | cut -d "=" -f 2)" = "true" ];
 	then
@@ -90,7 +185,13 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 				# If Yes then remove skylined, config directory
 				rm -rf $SKYLINED_PATH 2>/dev/null
 				rm -rf $CONFIG_DIR 2>/dev/null
-				rm -rf "$PATH/skylined" 2>/dev/null
+				if [ "$DISTRO_TYPE" = "ubuntu" ];
+					then
+						rm -rf /bin/skylined 2>/dev/null
+				elif [ "$DISTRO_TYPE" = "ubuntu" ];
+					then
+						rm -rf "$PATH/skylined" 2>/dev/null
+				fi
 				"* Successfully removed existing files, proceeding with the script!"
 				break
 		elif [[ "$ASK_INPT" = [nN] ]];
@@ -112,25 +213,38 @@ if [ "$1" = "--canary" ];
 	then
 		sed -i 's/canary=false/canary=true/' $CONFIG_DIR/skylined_script.conf
 fi
-##### 
+#####
 # Now do main stuff 
 echo -e "* Updating available lists and installed packages [...]"
 sleep 0.7
 # Update termux packages since lets assume user has installed for the first time
-apt update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-apt upgrade -y &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+apt-get update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+apt-get -y -o Dpkg::Options::="--force-confnew" upgrade &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
 # Then Start installing some required binaries
 echo -e "* Installing required binaries; please wait [...]"
 sleep 1
-stuff_inst git
-stuff_inst vim
-stuff_inst micro
-stuff_inst clang
-stuff_inst make
-stuff_inst cmake
-stuff_inst binutils
-stuff_inst ncurses-utils
-stuff_inst tar
+if [ "$DISTRO_TYPE" = "termux" ];
+	then
+		stuff_inst git
+		stuff_inst vim
+		stuff_inst micro
+		stuff_inst clang
+		stuff_inst make
+		stuff_inst cmake
+		stuff_inst binutils
+		stuff_inst ncurses-utils
+		stuff_inst tar
+elif [ "$DISTRO_TYPE" = "ubuntu" ];
+	then
+		stuff_inst git
+		stuff_inst xxd
+		stuff_inst micro
+		stuff_inst clang
+		stuff_inst cmake
+		stuff_inst make
+		stuff_inst libncurses5-dbg
+		stuff_inst binutils
+fi
 echo -e "* Done!"
 sleep 0.3
 echo -e "* Downloading skylined script.. $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY-BRANCH\e[39m"; fi) [Please be patient]"
