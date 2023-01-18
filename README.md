@@ -3,5 +3,9 @@
 # Installation
 Termux:
 ```
-curl -L https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh | bash -s -- --canary​
+bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh) --canary
+```
+WSL/Linux (Ubuntu) [EXPERIMENTAL]:
+```
+sudo bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh) --canary
 ```
