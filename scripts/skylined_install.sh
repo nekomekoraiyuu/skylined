@@ -19,12 +19,12 @@ fi
 #############
 ######## Distro \\ CHECK #########
 # Check if its wsl/Linux (Ubuntu distro)
-if [ "$(grep -h "^ID=" < /etc/os-release | cut -d "=" -f 2)" = "ubuntu" ];
+if [ "$(grep -h "^ID=" < /etc/os-release 2>/dev/null | cut -d "=" -f 2)" = "ubuntu" ];
 	then
 		# Then specify the distro name
 		DISTRO_TYPE="ubuntu"
 # Else if check if its termux
-elif [ -n "$(echo -e "$TERMUX_VERISON")" ];
+elif [ -n "$TERMUX_VERSION" ] ;
 	then
 		# Check if its old termux version (Google play release)
 		if [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -gt "01130" ];
