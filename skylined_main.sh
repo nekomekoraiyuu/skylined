@@ -168,11 +168,11 @@ menu_nsp () {
 	clear
 	# Revalidate input just in case invalidated
 	input_valid="true"
-	echo -e "$menu_header press q to go back and press r to refresh list\nPlease select base game to update:"
+	echo -e "$menu_header press q to go back; press r to refresh list\nPlease select base game to update:"
 	# Check if 
 	if [[ -z $(ls $SKYLINED_PATH/input/ | grep .nsp) ]];
 		then
-			echo -e "* There are no nsp files in input directory.\nPlease put your nsp roms in input directory."
+			echo -e "* There are no nsp files in input directory;Please put your nsp roms in the input directory."
 			pre_calculated_romdir=true
 	fi	
 	# Make pre-calculations for rom once names to prevent 1 sec delay // users might need to manually refresh so iam adding r key
@@ -215,7 +215,12 @@ menu_nsp_update_pick () {
 	clear
 	# Revalidate input
 	input_valid="true"
-	echo -e "$menu_header \npress q to go back\nPlease select update nsp rom:"
+	echo -e "$menu_header \npress q to go back; press r to refresh\nPlease select update nsp rom:"
+	if [ -z "$(ls $SKYLINED_PATH/input | grep .nsp | grep -v $base_selected)" ];
+	  then
+      echo -e "* There are no available roms to update; Please put your update roms in the input directory."
+      pre_calculated_romdir="true"
+  fi
 	# Precalculate rom dir again like the previous section
 		if [ "$pre_calculated_romdir" = "false" ];
 		then
@@ -444,6 +449,13 @@ while [ $first_loop = "true" ];
 									pre_calculated_romdir="false"
 									selection_option=1
 									break
+							fi
+              # Check if input refresh 
+							if [ "$INPT_LAST" = "rRefresh" ];
+								then 
+						      INPT_LAST="NULL"
+						      pre_calculated_romdir="false"
+						      break
 							fi
 							# Show nsp updater screen//page
 							menu_nsp

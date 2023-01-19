@@ -11,6 +11,7 @@ var_title="NULL"
 title_keys="NULL"
 INPT_TEMP="NULL"
 LOOP_CON="true"
+base_origin_name="$(echo -e "$base_selected")"
 ###########
 ##### FUNCTIONS - SECTION ####
 # Define a function that generates title and title keys and uhh writes?
@@ -25,12 +26,13 @@ def_title_keys () {
 ###### MAIN ######
 # Since this script is gonna be run by main script so it'll contain the main scripts uhhhh yeah variables
 ### Check if prod keys are present
+clear
 if [ -z "$(ls $SKYLINED_PATH/input/ | grep -oh "prod.keys")" ];
   then 
     echo -e "* Production keys are missing! Have you put it in the correct directory with the name 'prod.keys'?"
   else 
       # recheck if the provided production keys file is empty
-      if [ -z $(cat $SKYLINED_PATH/input/prod.keys 2>/dev/null) ]; 
+      if [[ -z "$(cat $SKYLINED_PATH/input/prod.keys 2>/dev/null)" ]]; 
         then 
           echo -e "* Provided Production keys are empty! Please make sure you have put correct production keys."
         else 
@@ -51,18 +53,25 @@ if [ "$prod_present" = "true" ];
     mkdir -p $SKYLINED_PATH/temp
     cd $SKYLINED_PATH/temp
     # Make temp title keys
+    echo -e "* Generating temporary title keys.."
     touch title.keys
     # copy hactool and hacpack
+    echo -e "* Copying hactool and hacpack..."
     cp $SKYLINED_PATH/binaries/hactool $SKYLINED_PATH/binaries/hacpack $SKYLINED_PATH/temp/
     # Then copy production keys 
-    cp $SKYLINED_PATH/input/prod.keys $SKYLINED_PATH/temp
+    echo -e "* Copying production keys.."
+    cp $SKYLINED_PATH/input/prod.keys $SKYLINED_PATH/temp/
     # Copy base and update roms to temp dir
-    cp $SKYLINED_PATH/input/$base_selected $SKYLINED_PATH/input/$update_selected $SKYLINED_PATH/temp 
+    echo -e "* Copying base and update rom to temporary directory.."
+    cp $SKYLINED_PATH/input/"$base_selected" $SKYLINED_PATH/temp/base_sel.nsp
+    base_selected="base_sel.nsp"
+    cp $SKYLINED_PATH/input/"$update_selected" $SKYLINED_PATH/temp/update_sel.nsp
+    update_selected="update_sel.nsp"
     ###### Hactool and hacpack cmds here 
     # Make a temporary and build dir
     mkdir temporary temporary_build
     # extract base nsp
-    ./hactool -t pfs0 $base_selected --outdir ./temporary
+    ./hactool -t pfs0 $base_selected --outdir="temporary"
     cd temporary
     def_title_keys
     # Move base nca to temporary_build directory
@@ -78,7 +87,7 @@ if [ "$prod_present" = "true" ];
       done
     rm -rf ./* && cd ..
     # extract update nsp
-    ./hactool -t pfs0 $update_selected --outdir ./temporary
+    ./hactool -t pfs0 $update_selected --outdir="temporary"
     cd temporary
     def_title_keys
     # Now move nca files to temp dir
@@ -126,7 +135,7 @@ if [ "$prod_present" = "true" ];
       mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/$rom_titleid[Updated].nsp
     elif [ "$pref_romname" = "basename" ];
       then
-        mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/$base_selected[Updated].nsp
+        mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
    fi 
    rm -rf $SKYLINED_PATH/temp
     ##### End

@@ -25,9 +25,11 @@ if [ "$(grep -h "^ID=" /etc/os-release 2>/dev/null | cut -d "=" -f 2)" = "ubuntu
 		DISTRO_TYPE="ubuntu"
 # Else if check if its termux
 elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -ge "01180" ];
-		# Check if its old termux version (Google play release)
 			then
 				DISTRO_TYPE="termux"
+elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -lt "01180" ];
+			then
+				DISTRO_TYPE="termux_outdated"
 elif [ -z "$TERMUX_VERSION" ];
 	then
 			if [ "$(pwd | cut -d "/" -f 4)" = "com.termux" ];
@@ -296,8 +298,15 @@ cd ~
 # finished setting up now remove temp directory
 rm -rf $TEMP_PATH
 # setup skylined shortcut
-echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > "$PATH/skylined"
-chmod +x "$PATH/skylined"
+if [ "$DISTRO_TYPE" = "termux" ];
+  then
+    echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > "$PATH/skylined"
+    chmod +x "$PATH/skylined"
+elif [ "$DISTRO_TYPE" = "ubuntu" ];
+  then
+    echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > "/bin/skylined"
+    chmod +x "/bin/skylined"
+fi
 echo -e "* Everything is done!\nYou can now launch the script by typing\n\e[34mskylined\e[39m in the terminal!"
 # Update config file and Exit since the script is finished
 sed -i 's/has_skylined_installer_finished_install=false/has_skylined_installer_finished_install=true/' $CONFIG_DIR/skylined_script.conf
