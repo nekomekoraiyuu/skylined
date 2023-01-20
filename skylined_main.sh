@@ -258,6 +258,7 @@ menu_nsp_update_pick () {
 menu_nsp_sum () {
   clear
   # Revalidate input because why not :stretchreaction: ( if you get this skyline emulador ref )
+  limit_options=2
   input_valid="true"
   # Show header
   echo -e "$menu_header\n"
