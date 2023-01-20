@@ -245,7 +245,7 @@ elif [ "$DISTRO_TYPE" = "ubuntu" ];
 		stuff_inst clang
 		stuff_inst cmake
 		stuff_inst make
-		stuff_inst libncurses5-dbg
+		stuff_inst libncurses5-dev
 		stuff_inst binutils
 fi
 echo -e "* Done!"

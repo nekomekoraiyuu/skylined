@@ -170,7 +170,7 @@ menu_nsp () {
 	input_valid="true"
 	echo -e "$menu_header press q to go back; press r to refresh list\nPlease select base game to update:"
 	# Check if 
-	if [[ -z $(ls $SKYLINED_PATH/input/ | grep .nsp) ]];
+	if [[ -z $(ls $SKYLINED_PATH/input/ 2>/dev/null | grep .nsp) ]];
 		then
 			echo -e "* There are no nsp files in input directory;Please put your nsp roms in the input directory."
 			pre_calculated_romdir=true
@@ -179,12 +179,12 @@ menu_nsp () {
 	if [ "$pre_calculated_romdir" = "false" ];
 		then
 			# A variable that stores how many options are there
-			limit_options=$(ls $SKYLINED_PATH/input/ | grep -c .nsp)
+			limit_options="$(ls $SKYLINED_PATH/input/ | grep -c .nsp)"
 			# A variable that stores the value of how many files were there
 			list_test="$(ls $SKYLINED_PATH/input/ | grep .nsp)"
 			# Make temp directory to store temporary commands
 			mkdir -p $SKYLINED_PATH/temp_stuff
-			echo -e "#!/bin/bash\ncase $(echo -e '$selection_option') in\n# Insert here\nesac" > $SKYLINED_PATH/temp_stuff/temp_command.sh
+			echo -e "#!/bin/bash\ncase $(echo -e '"$selection_option"') in\n# Insert here\nesac" > $SKYLINED_PATH/temp_stuff/temp_command.sh
 			chmod +x $SKYLINED_PATH/temp_stuff/temp_command.sh
 			# Make a for statement that makes a case statement so we can execute the case statement in the temp file later
 			for i_stuff in $(seq $limit_options)
@@ -216,7 +216,7 @@ menu_nsp_update_pick () {
 	# Revalidate input
 	input_valid="true"
 	echo -e "$menu_header \npress q to go back; press r to refresh\nPlease select update nsp rom:"
-	if [ -z "$(ls $SKYLINED_PATH/input | grep .nsp | grep -v $base_selected)" ];
+	if [ -z "$(ls $SKYLINED_PATH/input | grep .nsp | grep -v "$base_selected")" ];
 	  then
       echo -e "* There are no available roms to update; Please put your update roms in the input directory."
       pre_calculated_romdir="true"
@@ -233,7 +233,7 @@ menu_nsp_update_pick () {
 			echo -e "#!/bin/bash\ncase $(echo -e '$selection_option') in\n# Insert here\nesac" > $SKYLINED_PATH/temp_stuff/temp_command.sh
 			chmod +x $SKYLINED_PATH/temp_stuff/temp_command.sh
 			# Make a for statement that makes a case statement so we can execute the case statement in the temp file later
-			for i_stuff in $(seq $limit_options)
+			for i_stuff in $(seq "$limit_options")
 				do
 				# Find the line number of the "Insert here" comment and store it
 				num_order=$(cat $SKYLINED_PATH/temp_stuff/temp_command.sh | grep -n "# Insert here" | cut -d ":" -f 1 | tail -n 1)
