@@ -150,6 +150,9 @@ while [ "$LOOP_CON" = "true" ];
         # Reset selected base and update name
         base_selected="NULL"
         update_selected="NULL"
+        echo -e "* Returning to menu.."
+        input_valid="false"
+        break
       elif [[ "$INPT_TEMP" = [nN] ]];
         then 
           clear

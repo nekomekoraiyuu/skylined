@@ -16,6 +16,8 @@ pre_calculated_romdir="false"
 # Variables that store base and update meta
 base_selected="NULL"
 update_selected="NULL"
+#### This variable decides whether to save terminal content and restore it or not
+term_contnt_SAR="false"
 ### Logging config \\ Need to rename this (TO-DO)
 log_blw=$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "show_console_logging=" | cut -d "=" -f 2)
 #### this variable below controlls how the updated nsp should be named
@@ -59,9 +61,14 @@ logs_print () {
 }
 # Make function that'll return the cursor to normal and other stuff on exit
 on_interrupt () {
+	clear
 	tput cnorm
 	rm -rf $SKYLINED_PATH/temp_stuff 2> /dev/null
   rm -rf $SKYLINED_PATH/script_update_temp
+  if [ "$term_contnt_SAR" = "true" ];
+    then
+      tput rmcup
+  fi
 }
 # This function below detects input keys like arrows..?
 read_input_key () {
@@ -280,6 +287,7 @@ menu_nsp_sum () {
     if [ "$INPT_LAST" = "ENTER" ];
       then
         # A
+        input_valid="false"
         selection_option=1
         third_loop="false"
         fourth_loop="false"
@@ -314,8 +322,9 @@ menu_settings () {
   			log_blw="true"
   			sed -i "s/show_console_logging=false/show_console_logging=true/" $CONFIG_DIR/skylined_script.conf
   		fi
-  		# At last set input last to true
+  		# At last set input last to null 
   		INPT_LAST="NULL"
+      input_valid="false"
   fi
   ;;
   2)
@@ -334,6 +343,7 @@ menu_settings () {
   		fi
   		# set inpt last to null
   		INPT_LAST="NULL"
+  		input_valid="false"
   fi
   ;;
   3)
@@ -357,12 +367,13 @@ menu_update_script () {
   git clone -b update https://github.com/nekomekoraiyuu/skylined --depth=1 $SKYLINED_PATH/script_update_temp
   if [ "$canary_mode" = "true" ];
     then
-      versioning=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
-      first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
-      second_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "*Version=" | cut -d "=" -f 2 | cut -d "/" -f 3)
+      versioning=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+      first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
+      second_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 3)
       #### TO DO - 
       line_first=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | head -n 1)
       line_last=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
+      # Now save execution commands in a temp file
       cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | sed -n "$(($line_first+1)),$(($line_last-1))p" > $SKYLINED_PATH/script_update_temp/update_execution.sh 
       chmod +x $SKYLINED_PATH/script_update_temp/update_execution.sh
       source $SKYLINED_PATH/script_update_temp/update_execution.sh
@@ -384,6 +395,11 @@ menu_update_script () {
 tput civis
 # Then make a signal so if there interruption cursor will return to normal
 trap on_interrupt EXIT
+# Save terminal content and restore it later
+if [ "$term_contnt_SAR" = "true" ];
+    then
+      tput smcup
+fi
 # Check if the script was run before; if not then show manual instruction page
 if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_run_skylined_script_once=" | cut -d "=" -f 2)" = "false" ];
 	then
@@ -428,9 +444,10 @@ while [ $first_loop = "true" ];
         fi 
       if [ "$selection_screen" = "script_update" ];
         then
-          echo -e "This section is in WIP! Please try again later! ;3"
-          selection_screen="settings"
-          sleep 3
+          clear
+          echo -e "This section is in WIP"
+          menu_update_script
+          sleep 1 
       fi
 		fi
         # uhhh
@@ -460,7 +477,6 @@ while [ $first_loop = "true" ];
 							fi
 							# Show nsp updater screen//page
 							menu_nsp
-							echo -e second
 							# Then check for input
 							if [ "$input_valid" = "true" ];
 								then
@@ -485,7 +501,6 @@ while [ $first_loop = "true" ];
                    						 fi
 								##### NSP ROM UPDATE PICK MENU //
 									menu_nsp_update_pick
-									echo -e third
 									if [ "$input_valid" = "true" ];
 										then
 											read_input_key
