@@ -158,6 +158,12 @@ elif [ "$DISTRO_TYPE" = "termux" ];
 	then
 		echo -e "* Termux detected; Proceeding with the script."
 		sleep 0.3
+		# Check if the user is root \\ if then exit.
+		if [ "$(id -u)" -eq 0 ];
+		  then  
+		    echo -e "* Please do not run the script as root in termux;\nPlease run the script without root. (Without sudo)"
+		    exit 1
+		fi
 fi
 ### 
 ##### If wsl/Linux (Ubuntu) detected
@@ -165,7 +171,7 @@ if [ "$DISTRO_TYPE" = "ubuntu" ];
 	then
 		echo -e "* WSL/Linux (Ubuntu Distribution) detected; Proceeding with the script."
 		# Check if running as root \\ sudo
-		if [ "$EUID" -ne 0 ];
+		if [ "$(id -u)" -ne 0 ];
 			then
 				echo "* Please run the script as root! (use with sudo)"
 				exit 1
