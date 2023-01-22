@@ -6,6 +6,10 @@
 <-----EXECUTE----->
 # Put your commands here; And it'll be executed after downloading this update file
 echo -e 'Update validation success! (test)'
+# Rename stuff to bak
+mv ./skylined_main.sh ./skylined_main.sh.bak
+mv ./scripts/skylined_nsp_updater.sh ./scripts/skylined_nsp_updater.sh.bak
+# Now download updated scripts
 sleep 3
 exit
 <-----EXECUTE----->
