@@ -170,6 +170,73 @@ case "$selection_option" in
 		;;
 esac		
 }
+##### versioning 
+versioning_calc () {
+    ##### Version Checking #####
+    # Fetch stuff from the update file
+      # Check if canary mode is true
+      if [ "$canary_mode" = "true" ];
+        then
+          versioning=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+          first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
+          line_first=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | head -n 1)
+          line_last=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
+        else
+          versioning=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+          first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
+          line_first=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | head -n 1)
+          line_last=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
+      fi
+    ### now calculate versioning mode
+    if [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "o" ]];
+      then 
+        ### Optional flag 
+        echo -e "* An optional update is available. Do you want to updare?\npress [Y/N]"
+        read -rsn1 ASK_ANS
+        case $ASK_ANS in
+        [yY])
+        echo -e "* Updating please wait.."
+        versioning_type=1
+        ;;
+        [nN])
+        echo -e "* Cancelled updating; returning to settings.."
+        sleep 0.4
+        ;;
+        *)
+        echo -e "* Invalid input; assuming its no? Returning to settings.."
+        sleep 0.4
+        ;;
+        esac
+    elif [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "n" ]];
+      then 
+        ### Normal flag 
+        echo -e "* An update is available. Do you want to updare?\npress [Y/N]"
+        read -rsn1 ASK_ANS
+        case $ASK_ANS in
+        [yY])
+        echo -e "* Updating please wait.."
+        versioning_type=2
+        ;;
+        [nN])
+        echo -e "* Cancelled updating; returning to settings.."
+        sleep 0.4
+        ;;
+        *)
+        echo -e "* Invalid input; assuming its no? Returning to settings.."
+        sleep 0.4
+        ;;
+        esac
+    elif [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "f" ]];
+      then 
+        #### force flag - Basically updates without any prompts
+        echo -e "* Update available!; updating your script...\n[Forced]"
+        versioning_type=3
+      else
+        echo -e "* You're up to date!;press [ Any key ]\nto return to settings."
+        read -rsn1 ASK_CHOICE
+        unset ASK_CHOICE
+    fi
+  }
 # Make a function that shows nsp updater menu
 menu_nsp () {
 	clear
@@ -362,68 +429,6 @@ menu_settings () {
 }
 menu_update_script () {
   #### Define a Function that caculates versioning type
-  versioning_calc () {
-    ##### Version Checking #####
-    # Fetch stuff from the update file
-      # Check if canary mode is true
-      if [ "$canary_mode" = "true" ];
-        then
-          versioning=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
-          first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
-          line_first=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | head -n 1)
-          line_last=$(cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
-        else
-          versioning=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 1)
-          first_flag=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat | grep -h "^*Version=" | cut -d "=" -f 2 | cut -d "/" -f 2)
-          line_first=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | head -n 1)
-          line_last=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
-      fi
-    ### now calculate versioning mode
-    if [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "o" ]];
-      then 
-        ### Optional flag 
-        echo -e "* An optional update is available. Do you want to update?\npress [Y/N]"
-        read -rsn1 ASK_ANS
-        case $ASK_ANS in
-        [yY])
-        echo -e "* Updating please wait.."
-        versioning_type=1
-        ;;
-        [nN])
-        echo -e "* Cancelled updating; returning to settings.."
-        sleep 0.4
-        ;;
-        *)
-        echo -e "* Invalid input; assuming its no? Returning to settings.."
-        sleep 0.4
-        ;;
-        esac
-    elif [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "n" ]];
-      then 
-        ### Normal flag 
-        echo -e "* An update is available. Do you want to updare?\npress [Y/N]"
-        read -rsn1 ASK_ANS
-        case $ASK_ANS in
-        [yY])
-        echo -e "* Updating please wait.."
-        versioning_type=2
-        ;;
-        [nN])
-        echo -e "* Cancelled updating; returning to settings.."
-        sleep 0.4
-        ;;
-        *)
-        echo -e "* Invalid input; assuming its no? Returning to settings.."
-        sleep 0.4
-        ;;
-        esac
-    elif [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "f" ]];
-      then 
-        #### force flag - Basically updates without any prompts
-        echo -e "* Update available!; updating your script...\n[Forced]"
-        versioning_type=3
-    fi
-  }
   # show header
   echo -e "\e[1m-- \e[34mSkylined\e[39m -- $(echo -e "\e[33mCANARY")\e[22;39m"
   echo -e "* Checking for script updates please wait..."
@@ -431,16 +436,20 @@ menu_update_script () {
   git clone -b update https://github.com/nekomekoraiyuu/skylined --depth=1 $SKYLINED_PATH/script_update_temp
   # Invoke versioning var
   versioning_calc
-  if [ "$canary_mode" = "true" ];
+  if [[ ($versioning_type = 1) || ($versioning_type = 2) || ($versioning_type=3) ]];
     then
-      # Now save execution commands in a temp file
-      cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | sed -n "$(($line_first+1)),$(($line_last-1))p" > $SKYLINED_PATH/script_update_temp/update_execution.sh 
-      chmod +x $SKYLINED_PATH/script_update_temp/update_execution.sh
-      source $SKYLINED_PATH/script_update_temp/update_execution.sh
-    else 
-      cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | sed -n "$(($line_first+1)),$(($line_last-1))p" > $SKYLINED_PATH/script_update_temp/update_execution.sh 
-      chmod +x $SKYLINED_PATH/script_update_temp/update_execution.sh
-      source $SKYLINED_PATH/script_update_temp/update_execution.sh
+      if [ "$canary_mode" = "true" ];
+        then
+          # Now save execution commands in a temp file
+          cat $SKYLINED_PATH/script_update_temp/main_canary.updat 2>/dev/null | sed -n "$(($line_first+1)),$(($line_last-1))p" > $SKYLINED_PATH/script_update_temp/update_execution.sh 
+          chmod +x $SKYLINED_PATH/script_update_temp/update_execution.sh
+          source $SKYLINED_PATH/script_update_temp/update_execution.sh
+        else 
+          cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | sed -n "$(($line_first+1)),$(($line_last-1))p" > $SKYLINED_PATH/script_update_temp/update_execution.sh 
+          chmod +x $SKYLINED_PATH/script_update_temp/update_execution.sh
+          source $SKYLINED_PATH/script_update_temp/update_execution.sh
+      fi
+      unset versioning_type
   fi
 }
 ########### END FUNCTION #########
