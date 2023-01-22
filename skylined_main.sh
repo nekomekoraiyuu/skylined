@@ -5,7 +5,7 @@
 # Specify some variables
 state_back=0
 #### VERSION VAR
-VERSION_INFO="1"
+VERSION_INFO=$(grep -h "^skylined_vers=" < ~/.config/skylined/skylined_script.conf | cut -d "=" -f 2)
 # Configuration directory stuff
 CONFIG_DIR=~/.config/skylined
 MISC_PATH=~/skylined/misc
@@ -432,11 +432,13 @@ menu_update_script () {
   # show header
   echo -e "\e[1m-- \e[34mSkylined\e[39m -- $(echo -e "\e[33mCANARY")\e[22;39m"
   echo -e "* Checking for script updates please wait..."
+  rm -rf $SKYLINED_PATH/script_update_temp 2>/dev/null
   mkdir -p $SKYLINED_PATH/script_update_temp
-  git clone -b update https://github.com/nekomekoraiyuu/skylined --depth=1 $SKYLINED_PATH/script_update_temp
+  git clone -b update https://github.com/nekomekoraiyuu/skylined --depth=1 $SKYLINED_PATH/script_update_temp &>/dev/null
   # Invoke versioning var
   versioning_calc
-  if [[ ($versioning_type = 1) || ($versioning_type = 2) || ($versioning_type=3) ]];
+  echo -e "ae b $versioning_type"
+  if [[ $versioning_type = 1 ]] || [[ $versioning_type = 2 ]] || [[ $versioning_type = 3 ]];
     then
       if [ "$canary_mode" = "true" ];
         then
@@ -512,8 +514,8 @@ while [ $first_loop = "true" ];
       if [ "$selection_screen" = "script_update" ];
         then
           clear
-          echo -e "This section is in WIP"
-          menu_update_script
+          menu_update_script 
+          selection_screen="settings"
           sleep 1 
       fi
 		fi

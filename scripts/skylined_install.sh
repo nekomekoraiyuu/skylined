@@ -3,6 +3,10 @@
 # Rewrite / revision 1 : I had accidentialy deleted my previous script
 # Init
 ##### VARIABLES SECTION #######
+##### version \\ these variables below store script version 
+installer_versioning=1
+script_versioning=1
+## config 
 CONFIG_DIR=~/.config/skylined
 SKYLINED_PATH=~/skylined
 TEMP_PATH=~/skylined_installer_temp
@@ -216,7 +220,7 @@ if [ -z $(ls ~/.config 2>/dev/null | grep -oh "skylined" ) ];
 	then
 		mkdir -p $CONFIG_DIR
 fi
-echo -e "---- SKYLINED-CONFIG ----\nhas_skylined_script_run_once=true\nhas_skylined_installer_finished_install=false\nhas_run_skylined_script_once=false\ncanary=false\nnameby_rom=titleid\nshow_console_logging=false" > $CONFIG_DIR/skylined_script.conf
+echo -e "---- SKYLINED-CONFIG ----\nskylined_vers=$(echo -e "$script_versioning")\nskylined_installer_vers=$(echo -e "$installer_versioning")\nhas_skylined_script_run_once=true\nhas_skylined_installer_finished_install=false\nhas_run_skylined_script_once=false\ncanary=false\nnameby_rom=titleid\nshow_console_logging=false" > $CONFIG_DIR/skylined_script.conf
 echo -e "* Created config directory."
 if [ "$1" = "--canary" ];
 	then
