@@ -1,11 +1,10 @@
 /#### SKYLINED MAIN SCRIPT UPDATE ####
 ##### This canary type
 # Version number goes below; You can check the formatting in readme below if you don't know how does it work
-*Version=1/d/n
+*Version=1/n
 # Commands to be executed while updating
 <-----EXECUTE----->
 # Put your commands here; And it'll be executed after downloading this update file
-clear
 echo -e 'Update validation success! (test)'
 sleep 3
 exit
