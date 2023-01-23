@@ -232,8 +232,8 @@ if [ "$1" = "--canary" ];
 	then
 		sed -i 's/canary=false/canary=true/' $CONFIG_DIR/skylined_script.conf
 fi
-sed -i "/skylined_vers=/c\\skylined_vers=$script_versioning"
-sed -i "/skylined_installer_vers=/c\\skylined_installer_vers=$installer_versioning"
+sed -i "/skylined_vers=/c\\skylined_vers=$script_versioning" $CONFIG_DIR/skylined_script.conf
+sed -i "/skylined_installer_vers=/c\\skylined_installer_vers=$installer_versioning" $CONFIG_DIR/skylined_script.conf
 #####
 # Now do main stuff 
 echo -e "* Updating available lists and installed packages [...]"
