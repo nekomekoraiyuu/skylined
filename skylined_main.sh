@@ -216,7 +216,7 @@ versioning_calc () {
     elif [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "n" ]];
       then 
         ### Normal flag 
-        echo -e "* An update is available. Do you want to updare?\npress [Y/N]"
+        echo -e "* An update is available. Do you want to update?\npress [Y/N]"
         read -rsn1 ASK_ANS
         case $ASK_ANS in
         [yY])

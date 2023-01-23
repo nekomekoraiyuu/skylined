@@ -205,7 +205,7 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 					then
 						rm -rf "$PATH/skylined" 2>/dev/null
 				fi
-				"* Successfully removed existing files, proceeding with the script!"
+				echo -e "* Successfully removed existing files, proceeding with the script!"
 				break
 		elif [[ "$ASK_INPT" = [nN] ]];
 			then
