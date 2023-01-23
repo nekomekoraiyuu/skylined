@@ -101,6 +101,7 @@ clean_exit () {
        if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install=" | cut -d "=" -f 2)" != "true" ];
         then
          rm -rf $SKYLINED_PATH 2>/dev/null
+         rm -rf $CONFIG_DIR
        fi
        ### Remove Temporary downloaded file on interrupt (If using old termux version)
        if [ "$DISTRO_TYPE" = "termux_old" ];
@@ -220,12 +221,17 @@ if [ -z $(ls ~/.config 2>/dev/null | grep -oh "skylined" ) ];
 	then
 		mkdir -p $CONFIG_DIR
 fi
-echo -e "---- SKYLINED-CONFIG ----\nskylined_vers=$(echo -e "$script_versioning")\nskylined_installer_vers=$(echo -e "$installer_versioning")\nhas_skylined_script_run_once=true\nhas_skylined_installer_finished_install=false\nhas_run_skylined_script_once=false\ncanary=false\nnameby_rom=titleid\nshow_console_logging=false" > $CONFIG_DIR/skylined_script.conf
+# echo -e "---- SKYLINED-CONFIG ----\nskylined_vers=$(echo -e "$script_versioning")\nskylined_installer_vers=$(echo -e "$installer_versioning")\nhas_skylined_script_run_once=true\nhas_skylined_installer_finished_install=false\nhas_run_skylined_script_once=false\ncanary=false\nnameby_rom=titleid\nshow_console_logging=false" > $CONFIG_DIR/skylined_script.conf
 echo -e "* Created config directory."
+curl -sLo ~/.config/skylined/skylined_script.conf
+sleep 0.2
+echo -e "* Created config file"
 if [ "$1" = "--canary" ];
 	then
 		sed -i 's/canary=false/canary=true/' $CONFIG_DIR/skylined_script.conf
 fi
+sed -i "/skylined_vers=/c\\skylined_vers=$script_versioning"
+sed -i "/skylined_installer_vers=/c\\skylined_installer_vers=$installer_versioning"
 #####
 # Now do main stuff 
 echo -e "* Updating available lists and installed packages [...]"
