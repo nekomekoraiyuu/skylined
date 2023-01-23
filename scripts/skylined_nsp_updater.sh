@@ -69,12 +69,16 @@ if [ "$prod_present" = "true" ];
     update_selected="update_sel.nsp"
     ###### Hactool and hacpack cmds here 
     # Make a temporary and build dir
+    echo -e "* Making temporary directory.."
     mkdir temporary temporary_build
     # extract base nsp
-    ./hactool -t pfs0 $base_selected --outdir="temporary"
+    echo -e "* Extracting base nsp.."
+    ./hactool -k ./prod.keys -t pfs0 "$base_selected" --outdir="temporary"
     cd temporary
+    echo -e "* Defining keys from extracted base nsp.."
     def_title_keys
     # Move base nca to temporary_build directory
+    echo -e "* Moving base nca's to temporary building directory.."
     for i in *.nca 
       do
         nca_type=$(../hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
@@ -85,12 +89,16 @@ if [ "$prod_present" = "true" ];
             mv $i ../temporary_build
         fi
       done
+    echo -e "* Done!"
     rm -rf ./* && cd ..
     # extract update nsp
-    ./hactool -t pfs0 $update_selected --outdir="temporary"
+    echo -e "* Now extracting update nsp.."
+    ./hactool -k ./prod.keys -t pfs0 "$update_selected" --outdir="temporary"
     cd temporary
+    echo -e "* Defining title keys from the update nsp.."
     def_title_keys
     # Now move nca files to temp dir
+    echo -e "* Moving update nca's to temporary building directory.."
     for i in *.nca 
       do
         nca_type=$(../hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
@@ -105,21 +113,28 @@ if [ "$prod_present" = "true" ];
             mv $i ../temporary_build
         fi
       done
+    echo -e "* Done"
     rm -rf ./* && cd ..
     # Move hacpack and hacktool to temp build dir
+    echo -e "* Moving & copying production keys, hactool and hacpack to\ntemporary building directory..."
     mv ./hacpack ./hactool ./temporary_build/
+    cp ./prod.keys ./temporary_build
     cd ./temporary_build
     # Now get title id from base program nca 
+    echo -e "* Getting title id from base program nca;\nand making exefs and romfs directory.."
     rom_titleid=$(./hactool "$nca_base" | grep -oP "(?<=Title ID:\s{27}).*") 
     # Now make romfs and exefs directory and extract base NCA and update NCA to it
-    mkdir romfs exefs 
-    ./hactool --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
+    mkdir romfs exefs
+    echo -e "* Extracting base nca and update nca.."
+    ./hactool -k ./prod.keys --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
     # Remove Update nca and base
-    rm $nca_update $nca_base
+    echo -e "* Cleaning up base and update nca.."
+    rm "$nca_update" "$nca_base"
     # Now pack romfs and exefs into one nca  \\ 
+    echo -e "* Packing romfs and exefs.."
     mkdir nca
     ./hacpack --type="nca" --ncatype="program" --plaintext --exefsdir="exefs" --romfsdir="romfs" --titleid="$rom_titleid" --outdir="nca"
-    mv $nca_control nca 
+    mv "$nca_control" nca 
     patchednca=$(ls nca)
     # funny rm -rf cmd 
     rm -rf exefs romfs 

@@ -100,8 +100,6 @@ read_input_key () {
 								selection_option=$(($selection_option+1))
 						fi					
 						;;
-					C) echo → right ;;
-					D) echo ← left ;;
 					esac
 			fi
 	# End of arrow check now check for normal keywords
@@ -122,6 +120,10 @@ read_input_key () {
 			[rR])
 			# Mark it as "refresh" key (r key is refresh)
 			INPT_LAST="rRefresh"
+			;;
+			[fF])
+			# Mark it as "force" key (f key is force only in settings)
+			INPT_LAST="fFKEY"
 			;;		
 			esac
 	fi
@@ -194,6 +196,34 @@ versioning_calc () {
           line_last=$(cat $SKYLINED_PATH/script_update_temp/main_normal.updat 2>/dev/null | grep -on "<-----EXECUTE----->" | cut -d ":" -f 1 | tail -n 1)
       fi
     ### now calculate versioning mode
+    ### Check if the last key was Force key \\ if then force redownload
+    if [ "$forced_dwnload" = "true" ];
+      then 
+        echo -e "* Are you sure you want to redownload current version?\n(Useful if maintainer repushes an update on the current version)\n[Press Y to proceed / N to cancel.]"
+        read -rsn1 ASK_ANS
+        case $ASK_ANS in
+        [yY])
+          echo -e "* Downloading please wait.."
+          forced_dwnload="false"
+          unset ASK_ANS
+          versioning_type=4
+          return
+          ;;
+        [nN])
+          echo -e "* Canceled."
+          forced_dwnload="false"
+          unset ASK_ANS
+          return
+          ;;
+        *)
+          echo -e "* Invalid input; assuming its no?"
+          forced_dwnload="false"
+          unset ASK_ANS
+          return
+          ;;
+        esac
+    fi
+    #####
     if [[ "$versioning" -gt "$VERSION_INFO" && "$first_flag" = "o" ]];
       then 
         ### Optional flag 
@@ -423,13 +453,20 @@ menu_settings () {
   3)
   echo -e "$(if [ "$log_blw" = "true" ]; then echo -e "* Show Console Log Below : [√]"; else echo -e "Show Console Log Below : [×]"; fi)"
   echo -e "$(if [ "$pref_romname" = "titleid" ]; then echo -e "* Name Updated Nsp File By : TitleID"; else echo -e "* Name Updated Nsp File By : Base_Name"; fi)\e[39m"
-  echo -e "\e[32m➔ * Check for updates\e[39m" 
+  echo -e "\e[32m➔ * Check for updates\n[Press F To Force Update]\e[39m" 
   if [ "$INPT_LAST" = "ENTER" ];
     then 
     # change the screen to script updater
       selection_screen="script_update"
       INPT_LAST="NULL"
       input_valid="false"
+  elif [ "$INPT_LAST" = "fFKEY" ];
+    then 
+      selection_screen="script_update"
+      INPT_LAST="NULL"
+      input_valid="false"
+      # Since F key is pressed the script will redownload update
+      forced_dwnload="true"
   fi
   ;;
   esac
@@ -444,8 +481,8 @@ menu_update_script () {
   git clone -b update https://github.com/nekomekoraiyuu/skylined --depth=1 $SKYLINED_PATH/script_update_temp &>/dev/null
   # Invoke versioning var
   versioning_calc
-  echo -e "ae b $versioning_type"
-  if [[ $versioning_type = 1 ]] || [[ $versioning_type = 2 ]] || [[ $versioning_type = 3 ]];
+  echo -e "$versioning_type"
+  if [[ $versioning_type = 1 ]] || [[ $versioning_type = 2 ]] || [[ $versioning_type = 3 ]] || [[ $versioning_type = 4 ]];
     then
       if [ "$canary_mode" = "true" ];
         then
