@@ -7,6 +7,8 @@
 #### You can modify the version number below
 versioning_updater=2
 # Put your commands here; And it'll be executed after downloading this update file
+# Change dir into skylined dir
+cd ~/skylined/ >/dev/null
 # Rename stuff to bak
 echo -e "* Making a backup of your current script version.."
 mv ./skylined_main.sh ./skylined_main.sh.bak
