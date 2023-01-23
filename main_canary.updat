@@ -11,10 +11,12 @@ versioning_updater=2
 echo -e "* Making a backup of your current script version.."
 mv ./skylined_main.sh ./skylined_main.sh.bak
 mv ./scripts/skylined_nsp_updater.sh ./scripts/skylined_nsp_updater.sh.bak
+mv ./misc/manual.txt ./misc/manual.txt.bak
 # Now download updated scripts
 curl -sLO https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/skylined_main.sh
 chmod +x ./skylined_main.sh
 (cd ./scripts && curl -sLO https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_nsp_updater.sh && chmod +x skylined_nsp_updater.sh)
+(cd ./misc && curl -sLO https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/misc/manual.txt)
 echo -e "* Updating configs.."
 sed -i "/skylined_vers=/c\skylined_vers=$versioning_updater" ~/.config/skylined/skylined_script.conf
 sleep 0.4
