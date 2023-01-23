@@ -63,8 +63,14 @@ logs_print () {
 on_interrupt () {
 	clear
 	tput cnorm
+	# export TEMP_SKYLINE_VARIABLE="exit_norm"
 	rm -rf $SKYLINED_PATH/temp_stuff 2> /dev/null
   rm -rf $SKYLINED_PATH/script_update_temp
+  if [ "$update_status" != "OKAY" ];
+    then
+      mv ~/skylined/skylined_main.sh.bak ~/skylined/skylined_main.sh 2>/dev/null
+      mv ~/skylined/scripts/skylined_nsp_updater.sh.bak  ~/skylined/scripts/skylined_nsp_updater.sh 2>/dev/null
+  fi 
   if [ "$term_contnt_SAR" = "true" ];
     then
       tput rmcup
@@ -231,6 +237,7 @@ versioning_calc () {
         #### force flag - Basically updates without any prompts
         echo -e "* Update available!; updating your script...\n[Forced]"
         versioning_type=3
+      #### if there are no updates available
       else
         echo -e "* You're up to date!;press [ Any key ]\nto return to settings."
         read -rsn1 ASK_CHOICE
