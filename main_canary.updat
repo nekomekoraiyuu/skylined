@@ -1,11 +1,11 @@
 /#### SKYLINED MAIN SCRIPT UPDATE ####
 ##### This canary type
 # Version number goes below; You can check the formatting in readme below if you don't know how does it work
-*Version=1/n
+*Version=2/n
 # Commands to be executed while updating
 <-----EXECUTE----->
 #### You can modify the version number below
-versioning_updater=1
+versioning_updater=2
 # Put your commands here; And it'll be executed after downloading this update file
 # Rename stuff to bak
 echo -e "* Making a backup of your current script version.."
