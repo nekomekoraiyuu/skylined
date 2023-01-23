@@ -7,10 +7,37 @@ The no joke, user-friendly and
 emulator thats revised on existing updater
 scripts and making it better
 
-### Using the nsp updater ###
+##### TABLE OF CONTENTS #####
+[ * ] Getting started
+[ * ] Setting options
+[ * ] Configuration
+[ * ] FAQ \\ Common errors
 
-You might see 4 sections in this program
-which are for nsp updating, checking for
-newer versions, about etc.
-
-To get started.
+#### Getting started
+To get started you have to put your ".nsp"
+extension roms and production keys in the "input" 
+directory; (Don't forget to rename your production keys to "prod.keys" when putting in the "input" directory)
+which can be found in this path: ~/skylined/input
+### Accessing input directory (Android)
+To access this path of termux you have to use an external
+file manager like MiXplorer, Material files, or the builtin file manager app.
+You can download the recommended file managers from these links below;
+-- MiXplorer : (PLACEHOLDER)
+-- Material files : https://github.com/zhanghai/MaterialFiles/releases
+### Getting the updated roms
+So after you've finished updating your roms should be saved in
+the output directory; or alternatively in this path: ~/skylined/output/
+You can copy these updated roms using your file manager to your skyline rom directory.
+#### Settings options
+Currently there are 3 options;
+### Console logging (TBD)
+This option basically shows the last logs below
+thats being saved in the "logs" directory; (Path: ~/skylined/logs)
+### Output format (TBW)
+### Check for updates
+This option basically checks whether if theres
+an available update for the script.
+#### Configuration
+The Configuration file can be found in this path:
+~/.config/skylined/skylined_script.conf
+(^ home dir)
