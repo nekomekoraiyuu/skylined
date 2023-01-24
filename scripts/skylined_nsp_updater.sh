@@ -19,8 +19,8 @@ def_title_keys () {
   var_title=$(xxd *.tik | grep -oP -m 1 "(?<=2a0: ).{39}" | sed 's/ //g')
   title_keys=$(xxd *.tik | grep -oP -m 1 "(?<=180: ).{39}" | sed 's/ //g')
   # If sed detects maching string then it'll delete the line
-  sed -i "/$title=$key/d" $SKYLINED_PATH/temp/title.keys
-  echo "$title=$key" >> $SKYLINED_PATH/temp/title.keys
+  sed -i "/$title=$key/d" ~/.switch/title.keys
+  echo "$title=$key" >> ~/.switch/title.keys
 }
 ############
 ###### MAIN ######
@@ -50,22 +50,22 @@ if [ "$prod_present" = "true" ];
     # Tell the user rom is being updated \\ now the main script starts from here
     echo -e "* Updating your rom please be patient.."
     # Make a temp working directory and move required files
-    mkdir -p $SKYLINED_PATH/temp
-    cd $SKYLINED_PATH/temp
+    mkdir -p ~/.switch/temp
+    cd ~/.switch/
     # Make temp title keys
     echo -e "* Generating temporary title keys.."
     touch title.keys
     # copy hactool and hacpack
     echo -e "* Copying hactool and hacpack..."
-    cp $SKYLINED_PATH/binaries/hactool $SKYLINED_PATH/binaries/hacpack $SKYLINED_PATH/temp/
+    cp $SKYLINED_PATH/binaries/hactool $SKYLINED_PATH/binaries/hacpack ~/.switch/
     # Then copy production keys 
     echo -e "* Copying production keys.."
-    cp $SKYLINED_PATH/input/prod.keys $SKYLINED_PATH/temp/
+    cp $SKYLINED_PATH/input/prod.keys ~/.switch/
     # Copy base and update roms to temp dir
     echo -e "* Copying base and update rom to temporary directory.."
-    cp $SKYLINED_PATH/input/"$base_selected" $SKYLINED_PATH/temp/base_sel.nsp
+    cp $SKYLINED_PATH/input/"$base_selected" ~/.switch/base_sel.nsp
     base_selected="base_sel.nsp"
-    cp $SKYLINED_PATH/input/"$update_selected" $SKYLINED_PATH/temp/update_sel.nsp
+    cp $SKYLINED_PATH/input/"$update_selected" ~/.switch/update_sel.nsp
     update_selected="update_sel.nsp"
     ###### Hactool and hacpack cmds here 
     # Make a temporary and build dir
@@ -73,7 +73,7 @@ if [ "$prod_present" = "true" ];
     mkdir temporary temporary_build
     # extract base nsp
     echo -e "* Extracting base nsp.."
-    ./hactool -k ./prod.keys -t pfs0 "$base_selected" --outdir="temporary"
+    ./hactool -t pfs0 "$base_selected" --outdir="temporary"
     cd temporary
     echo -e "* Defining keys from extracted base nsp.."
     def_title_keys
@@ -93,7 +93,7 @@ if [ "$prod_present" = "true" ];
     rm -rf ./* && cd ..
     # extract update nsp
     echo -e "* Now extracting update nsp.."
-    ./hactool -k ./prod.keys -t pfs0 "$update_selected" --outdir="temporary"
+    ./hactool -t pfs0 "$update_selected" --outdir="temporary"
     cd temporary
     echo -e "* Defining title keys from the update nsp.."
     def_title_keys
@@ -126,7 +126,7 @@ if [ "$prod_present" = "true" ];
     # Now make romfs and exefs directory and extract base NCA and update NCA to it
     mkdir romfs exefs
     echo -e "* Extracting base nca and update nca.."
-    ./hactool -k ./prod.keys --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
+    ./hactool --basenca="$nca_base" "$nca_update" --romfsdir="romfs" --exefsdir="exefs"
     # Remove Update nca and base
     echo -e "* Cleaning up base and update nca.."
     rm "$nca_update" "$nca_base"
@@ -147,12 +147,13 @@ if [ "$prod_present" = "true" ];
     # now move updated rom to output dir \\ also check if the user preferred to save as base game name or title id to output dir 
    if [ "$pref_romname" = "titleid" ];
     then
-      mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/$rom_titleid[Updated].nsp
+      mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$rom_titleid[Updated].nsp"
     elif [ "$pref_romname" = "basename" ];
       then
-        mv ./nsp/$rom_titleid.nsp $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
-   fi 
-   rm -rf $SKYLINED_PATH/temp
+        mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
+    fi 
+    rm -rf ~/.switch
+    cd ~/skylined/
     ##### End
 fi
 # Make a press Enter to continue
