@@ -19,8 +19,8 @@ def_title_keys () {
   var_title=$(xxd *.tik | grep -oP -m 1 "(?<=2a0: ).{39}" | sed 's/ //g')
   title_keys=$(xxd *.tik | grep -oP -m 1 "(?<=180: ).{39}" | sed 's/ //g')
   # If sed detects maching string then it'll delete the line
-  sed -i "/$title=$key/d" ~/.switch/title.keys
-  echo "$title=$key" >> ~/.switch/title.keys
+  sed -i "/$var_title=$title_keys/d" ~/.switch/title.keys
+  echo "$var_title=$title_keys" >> ~/.switch/title.keys
 }
 ############
 ###### MAIN ######
@@ -118,7 +118,7 @@ if [ "$prod_present" = "true" ];
     # Move hacpack and hacktool to temp build dir
     echo -e "* Moving & copying production keys, hactool and hacpack to\ntemporary building directory..."
     mv ./hacpack ./hactool ./temporary_build/
-    cp ./prod.keys ./temporary_build
+    cp ./prod.keys ./title.keys ./temporary_build
     cd ./temporary_build
     # Now get title id from base program nca 
     echo -e "* Getting title id from base program nca;\nand making exefs and romfs directory.."
