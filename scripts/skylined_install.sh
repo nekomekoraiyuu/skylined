@@ -12,14 +12,38 @@ SKYLINED_PATH=~/skylined
 TEMP_PATH=~/skylined_installer_temp
 EXIT_STATUS="NULL"
 ERR_STANDARD="* Failed; Perhaps try checking your\ninternet connection and try again?"
+canary_build="false"
 LOOPING="true"
-###### canary check #####
-if [ "$1" = "--canary" ];
-  then
-      canary_build="true"
-  else 
-      canary_build="false"
-fi
+#### Check for arguments
+for i in $@
+do
+	case $i in
+		# An flag \\ argument to lists available flags.
+		--list-args)
+			echo -e "Skylined installer script flag list:\n--list-args <<< This flag prints this list.\n--canary <<< This flag enables the script to install the canary version.\n--skip-update-list <<< This flag allows you to skip updating your lists and packages on execution of the script.\n--skip-binaries <<< This flag allows you to skip downloading required binaries.\n--no-silence <<< This flag disables extra output silencing. (useful if you are impatient about smth smth like me-- lmaoaaoao)"
+			exit 0
+			;;
+		# check if theres canary argument
+		--canary)
+			canary_build="true"
+		;;
+		# check if theres an argument to skip updating list and stuff
+		--skip-update-list)
+			arg_skip_update="true"
+		;;
+		--skip-binaries)
+			arg_skip_binaries="true"
+		;;
+		--no-silence)
+			arg_no_silence="true"
+		;;
+		*)
+			echo -e "* Invalid flag; you can try using the --list-args flag to lists available flags for this script."
+			sleep 0.1
+		;;
+	esac
+done
+#####
 #############
 ######## Distro \\ CHECK #########
 # Check if its wsl/Linux (Ubuntu distro)
@@ -228,7 +252,7 @@ echo -e "* Fetching default config file.."
 curl -sLo ~/.config/skylined/skylined_script.conf https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/misc/skylined_script.conf || { echo -e "* Failed to fetch default config; perhaps try checking your internet connection and try again?"; exit 1; }
 sleep 0.2
 echo -e "* Fetched config file and saved it to config directory."
-if [ "$1" = "--canary" ];
+if [ "$canary_build" = "true" ];
 	then
 		sed -i 's/canary=false/canary=true/' $CONFIG_DIR/skylined_script.conf
 fi
@@ -236,37 +260,55 @@ sed -i "/skylined_vers=/c\\skylined_vers=$script_versioning" $CONFIG_DIR/skyline
 sed -i "/skylined_installer_vers=/c\\skylined_installer_vers=$installer_versioning" $CONFIG_DIR/skylined_script.conf
 #####
 # Now do main stuff 
-echo -e "* Updating available lists and installed packages [...]"
-sleep 0.7
-# Update termux packages since lets assume user has installed for the first time
-apt-get update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-apt-get -y -o Dpkg::Options::="--force-confnew" upgrade &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-# Then Start installing some required binaries
-echo -e "* Installing required binaries; please wait [...]"
-sleep 1
-if [ "$DISTRO_TYPE" = "termux" ];
+if [ "$arg_skip_update" != "true" ];
 	then
-		stuff_inst git
-		stuff_inst vim
-		stuff_inst micro
-		stuff_inst clang
-		stuff_inst make
-		stuff_inst cmake
-		stuff_inst binutils
-		stuff_inst ncurses-utils
-		stuff_inst tar
-elif [ "$DISTRO_TYPE" = "ubuntu" ];
-	then
-		stuff_inst git
-		stuff_inst xxd
-		stuff_inst micro
-		stuff_inst clang
-		stuff_inst cmake
-		stuff_inst make
-		stuff_inst libncurses5-dev
-		stuff_inst binutils
+		echo -e "* Updating available lists and installed packages [...]"
+		sleep 0.7
+		# Update packages since lets assume user has installed for the first time
+		if [ "$arg_no_silence" != "true" ];
+			then
+				apt-get update &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+				apt-get -y -o Dpkg::Options::="--force-confnew" upgrade &> /dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+			else
+			# If theres no silence output flag
+				apt-get update || { echo -e "$ERR_STANDARD"; exit 1; }
+				apt-get -y -o Dpkg::Options::="--force-confnew" upgrade || { echo -e "$ERR_STANDARD"; exit 1; }
+		fi
+	else
+		echo -e "* Skipping updating lists and packages due to --skip-update-list flag.."
+		sleep 0.3
 fi
-echo -e "* Done!"
+# Then Start installing some required binaries
+if [ "$arg_skip_binaries" != "true" ];
+	then
+		echo -e "* Installing required binaries; please wait [...]"
+		sleep 1
+		if [ "$DISTRO_TYPE" = "termux" ];
+			then
+				stuff_inst git
+				stuff_inst vim
+				stuff_inst micro
+				stuff_inst clang
+				stuff_inst make
+				stuff_inst cmake
+				stuff_inst binutils
+				stuff_inst ncurses-utils
+				stuff_inst tar
+		elif [ "$DISTRO_TYPE" = "ubuntu" ];
+			then
+				stuff_inst git
+				stuff_inst xxd
+				stuff_inst micro
+				stuff_inst clang
+				stuff_inst cmake
+				stuff_inst make
+				stuff_inst libncurses5-dev
+				stuff_inst binutils
+		fi
+		echo -e "* Done!"
+	else
+		echo -e "* Skipping downloading required binaries due to --skip-binaries flag"
+fi
 sleep 0.3
 echo -e "* Downloading skylined script.. $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY-BRANCH\e[39m"; fi) [Please be patient]"
 sleep 0.6
