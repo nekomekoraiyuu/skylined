@@ -14,12 +14,6 @@ EXIT_STATUS="NULL"
 ERR_STANDARD="* Failed; Perhaps try checking your\ninternet connection and try again?"
 canary_build="false"
 LOOPING="true"
-### temp test
-echo -e "test $HOME"
-cd ~
-ls
-sleep 100
-exit 2
 #### Check for arguments
 for i in $@
 do
