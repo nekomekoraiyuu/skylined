@@ -416,8 +416,8 @@ fi
 if [ "$DISTRO_TYPE" = "ubuntu" ];
   then 
     echo -e "* Setting up file permissions..."
-    echo -e "Test print: $USER ,, $HOME"
-    sudo -E chown -R $USER:$USER $HOME/skylined $HOME/.config/skylined
+    echo -e "Test print: $USER ,, $HOME,,, $(logname)"
+    chown -R $(logname):$(logname) $HOME/skylined $HOME/.config/skylined
 fi
 echo -e "* Everything is done!\nYou can now launch the script by typing\n\e[34mskylined\e[39m in the terminal!"
 # Update config file and Exit since the script is finished
