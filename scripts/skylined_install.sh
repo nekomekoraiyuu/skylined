@@ -315,9 +315,21 @@ sleep 0.6
 # clone skylined script from github
 if [ "$canary_build" = "true" ];
   then
-    git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-  else
-    git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+  # check if theres do not silence output flag
+	if [ "$arg_no_silence" != "true" ];
+		then
+			git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+		else
+			git -C ~ clone -b canary https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
+	fi
+	else
+		if [ "$arg_no_silence" != "true" ];
+			then
+				git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+			else
+				git -C ~ clone -b main https://github.com/nekomekoraiyuu/skylined --depth 1 || { echo -e "$ERR_STANDARD"; exit 1; }
+
+		fi
 fi
 ###
 echo -e "* Done!" && sleep 0.4
@@ -328,14 +340,30 @@ mkdir -p $TEMP_PATH
 cd $TEMP_PATH
 # clone hacpack and hactool 
 echo -e "* Cloning hactool and hacpack..."
-git clone https://github.com/SciresM/hactool ./hactool_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-git clone https://github.com/The-4n/hacPack ./hacpack_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+if [ "$arg_no_silence" != "true" ];
+	then
+		git clone https://github.com/SciresM/hactool ./hactool_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+	else
+		git clone https://github.com/SciresM/hactool ./hactool_source || { echo -e "$ERR_STANDARD"; exit 1; }
+fi
+if [ "$arg_no_silence" != "true" ];
+	then
+		git clone https://github.com/The-4n/hacPack ./hacpack_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+	else
+		git clone https://github.com/The-4n/hacPack ./hacpack_source || { echo -e "$ERR_STANDARD"; exit 1; }
+
+fi
 echo -e "* Done!" && sleep 0.4
 # Setup hactool
 echo -e "* Setting up hactool.."
 sleep 0.4
 cd ./hactool_source
-git checkout c2c907430e674614223959f0377f5e71f9e44a4a &>/dev/null
+if [ "$arg_no_silence" != "true" ];
+	then
+		git checkout c2c907430e674614223959f0377f5e71f9e44a4a &>/dev/null
+	else
+		git checkout c2c907430e674614223959f0377f5e71f9e44a4a
+fi
 mv config.mk.template config.mk
 sed -i "372d" main.c
 # start building
@@ -348,7 +376,12 @@ sleep 0.3
 # Now setup hacpack
 echo -e "* Setting up hacpack.."
 cd ./hacpack_source
-git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88 &>/dev/null
+if [ "$arg_no_silence" != "true" ];
+	then
+		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88 &>/dev/null
+	else
+		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88
+fi
 mv config.mk.template config.mk
 # Start building hacpack
 make || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
