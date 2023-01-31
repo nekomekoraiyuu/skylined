@@ -238,7 +238,11 @@ if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined
 		fi
 		done
 fi
-#####
+##### notify the user that they have picked to not silence extra output
+if [ "$arg_no_silence" ];
+	then
+		echo -e "* Extra output wont be silence since you have included the --no-silence flag!"
+fi
 ####### Make a config directory if it simply doesnt exist
 ## If there is no config dir then make one
 if [ -z $(ls ~/.config 2>/dev/null | grep -oh "skylined" ) ];
