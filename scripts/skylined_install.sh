@@ -20,7 +20,7 @@ do
 	case $i in
 		# An flag \\ argument to lists available flags.
 		--list-args)
-			echo -e "Skylined installer script flag list:\n--list-args <<< This flag prints this list.\n--canary <<< This flag enables the script to install the canary version.\n--skip-update-list <<< This flag allows you to skip updating your lists and packages on execution of the script.\n--skip-binaries <<< This flag allows you to skip downloading required binaries.\n--no-silence <<< This flag disables extra output silencing. (useful if you are impatient about smth smth like me-- lmaoaaoao)"
+			echo -e "Skylined installer script flag list:\n--list-args <<< This flag prints this list.\n--canary <<< This flag enables the script to install the canary version.\n--skip-update-list <<< This flag allows you to skip updating your lists and packages on execution of the script.\n--skip-binaries <<< This flag allows you to skip downloading required binaries.\n--no-silence <<< This flag disables extra output silencing. (useful if you are impatient about smth smth like me-- lmaoaaoao)\n--skip-compile <<< This flag allows the script to skip binary compilation stage."
 			exit 0
 			;;
 		# check if theres canary argument
@@ -33,6 +33,9 @@ do
 		;;
 		--skip-binaries)
 			arg_skip_binaries="true"
+		;;
+		--skip-compile)
+		  arg_skip_compile="true"
 		;;
 		--no-silence)
 			arg_no_silence="true"
@@ -339,61 +342,66 @@ fi
 echo -e "* Done!" && sleep 0.4
 ### todo
 echo -e "* Now setting up skylined..."
-# Setup a temporary directory
-mkdir -p $TEMP_PATH
-cd $TEMP_PATH
-# clone hacpack and hactool 
-echo -e "* Cloning hactool and hacpack..."
-if [ "$arg_no_silence" != "true" ];
-	then
-		git clone https://github.com/SciresM/hactool ./hactool_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-	else
-		git clone https://github.com/SciresM/hactool ./hactool_source || { echo -e "$ERR_STANDARD"; exit 1; }
+if [ "$arg_skip_compile" != "true" ];
+  then 
+    # Setup a temporary directory
+    mkdir -p $TEMP_PATH
+    cd $TEMP_PATH
+    # clone hacpack and hactool 
+    echo -e "* Cloning hactool and hacpack..."
+    if [ "$arg_no_silence" != "true" ];
+    	then
+    		git clone https://github.com/SciresM/hactool ./hactool_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+    	else
+    		git clone https://github.com/SciresM/hactool ./hactool_source || { echo -e "$ERR_STANDARD"; exit 1; }
+    fi
+    if [ "$arg_no_silence" != "true" ];
+    	then
+    		git clone https://github.com/The-4n/hacPack ./hacpack_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
+    	else
+    		git clone https://github.com/The-4n/hacPack ./hacpack_source || { echo -e "$ERR_STANDARD"; exit 1; }
+    
+    fi
+    echo -e "* Done!" && sleep 0.4
+    # Setup hactool
+    echo -e "* Setting up hactool.."
+    sleep 0.4
+    cd ./hactool_source
+    if [ "$arg_no_silence" != "true" ];
+    	then
+    		git checkout c2c907430e674614223959f0377f5e71f9e44a4a &>/dev/null
+    	else
+    		git checkout c2c907430e674614223959f0377f5e71f9e44a4a
+    fi
+    mv config.mk.template config.mk
+    sed -i "372d" main.c
+    # start building
+    make || { echo -e "* Failed to build hactool! Please try again?"; exit 1; }
+    chmod +x hactool
+    mv hactool $SKYLINED_PATH/binaries/
+    echo -e "* Successfully set up hactool!"
+    cd ..
+    sleep 0.3
+    # Now setup hacpack
+    echo -e "* Setting up hacpack.."
+    cd ./hacpack_source
+    if [ "$arg_no_silence" != "true" ];
+    	then
+    		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88 &>/dev/null
+    	else
+    		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88
+    fi
+    mv config.mk.template config.mk
+    # Start building hacpack
+    make || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
+    chmod +x hacpack
+    mv hacpack $SKYLINED_PATH/binaries/
+    cd ~
+    # finished setting up now remove temp directory
+    rm -rf $TEMP_PATH
+  else
+    echo -e "* Skipping compiling binaries due to --skip-compile flag!"
 fi
-if [ "$arg_no_silence" != "true" ];
-	then
-		git clone https://github.com/The-4n/hacPack ./hacpack_source &>/dev/null || { echo -e "$ERR_STANDARD"; exit 1; }
-	else
-		git clone https://github.com/The-4n/hacPack ./hacpack_source || { echo -e "$ERR_STANDARD"; exit 1; }
-
-fi
-echo -e "* Done!" && sleep 0.4
-# Setup hactool
-echo -e "* Setting up hactool.."
-sleep 0.4
-cd ./hactool_source
-if [ "$arg_no_silence" != "true" ];
-	then
-		git checkout c2c907430e674614223959f0377f5e71f9e44a4a &>/dev/null
-	else
-		git checkout c2c907430e674614223959f0377f5e71f9e44a4a
-fi
-mv config.mk.template config.mk
-sed -i "372d" main.c
-# start building
-make || { echo -e "* Failed to build hactool! Please try again?"; exit 1; }
-chmod +x hactool
-mv hactool $SKYLINED_PATH/binaries/
-echo -e "* Successfully set up hactool!"
-cd ..
-sleep 0.3
-# Now setup hacpack
-echo -e "* Setting up hacpack.."
-cd ./hacpack_source
-if [ "$arg_no_silence" != "true" ];
-	then
-		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88 &>/dev/null
-	else
-		git checkout 7845e7be8d03a263c33430f9e8c2512f7c280c88
-fi
-mv config.mk.template config.mk
-# Start building hacpack
-make || { echo -e "* Failed to build hacpack! Please try again?"; exit 1; }
-chmod +x hacpack
-mv hacpack $SKYLINED_PATH/binaries/
-cd ~
-# finished setting up now remove temp directory
-rm -rf $TEMP_PATH
 # setup skylined shortcut
 if [ "$DISTRO_TYPE" = "termux" ];
   then
@@ -408,7 +416,8 @@ fi
 if [ "$DISTRO_TYPE" = "ubuntu" ];
   then 
     echo -e "* Setting up file permissions..."
-    chown -R $USER:$USER $HOME/skylined $HOME/.config/skylined
+    echo -e "Test print: $USER ,, $HOME"
+    sudo -E chown -R $USER:$USER $HOME/skylined $HOME/.config/skylined
 fi
 echo -e "* Everything is done!\nYou can now launch the script by typing\n\e[34mskylined\e[39m in the terminal!"
 # Update config file and Exit since the script is finished
