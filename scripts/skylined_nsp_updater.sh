@@ -126,7 +126,7 @@ if [ "$prod_present" = "true" ];
     # Now make romfs and exefs directory and extract base NCA and update NCA to it
     mkdir romfs exefs
     echo -e "* Extracting base nca and update nca.."
-    ./hactool --basenca="$nca_base" "$nca_update" --romfsdir="romfs" --exefsdir="exefs"
+    ./hactool --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
     # Remove Update nca and base
     echo -e "* Cleaning up base and update nca.."
     rm "$nca_update" "$nca_base"
@@ -143,7 +143,6 @@ if [ "$prod_present" = "true" ];
     # Now repack all NCAs into one nsp 
     mkdir nsp 
     ./hacpack --type="nsp" --ncadir="nca" --titleid="$rom_titleid" --outdir="nsp"
-    
     # now move updated rom to output dir \\ also check if the user preferred to save as base game name or title id to output dir 
    if [ "$pref_romname" = "titleid" ];
     then

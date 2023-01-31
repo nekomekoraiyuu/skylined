@@ -367,6 +367,12 @@ elif [ "$DISTRO_TYPE" = "ubuntu" ];
     echo -e "#!/bin/bash\nbash ~/skylined/skylined_main.sh" > "/bin/skylined"
     chmod +x "/bin/skylined"
 fi
+# set up file permissions if its not termux especially wsl/Linux
+if [ "$DISTRO_TYPE" = "ubuntu" ];
+  then 
+    echo -e "* Setting up file permissions..."
+    chown -R $(whoami) ~/skylined ~/.config/skylined
+fi
 echo -e "* Everything is done!\nYou can now launch the script by typing\n\e[34mskylined\e[39m in the terminal!"
 # Update config file and Exit since the script is finished
 sed -i 's/has_skylined_installer_finished_install=false/has_skylined_installer_finished_install=true/' $CONFIG_DIR/skylined_script.conf
