@@ -282,9 +282,9 @@ menu_nsp () {
 	echo -e "$menu_header press q to go back; press r to refresh list\nPlease select base game to update:"
 	# Check if 
 	if [[ -z $(ls $SKYLINED_PATH/input/ 2>/dev/null | grep .nsp) ]];
-		then
-			echo -e "* There are no nsp files in input directory;Please put your nsp roms in the input directory."
-			pre_calculated_romdir=true
+	  	then
+	  		echo -e "* There are no nsp files in input directory;Please put your nsp roms in the input directory."
+	  		pre_calculated_romdir=true
 	fi	
 	# Make pre-calculations for rom once names to prevent 1 sec delay // users might need to manually refresh so iam adding r key
 	if [ "$pre_calculated_romdir" = "false" ];
@@ -293,6 +293,12 @@ menu_nsp () {
 			limit_options="$(ls $SKYLINED_PATH/input/ | grep -c .nsp)"
 			# A variable that stores the value of how many files were there
 			list_test="$(ls $SKYLINED_PATH/input/ | grep .nsp)"
+			list_origin="$(ls $SKYLINED_PATH/input/ | grep .nsp)"
+			for i_stuff in $(seq $limit_options)
+			  do
+			  calc_rom_size="$(ls -hl "$HOME/skylined/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
+			  list_test=$(echo -e "$list_test" | sed "$i_stuff s/$/ \\\ Size: $calc_rom_size/")
+			  done
 			# Make temp directory to store temporary commands
 			mkdir -p $SKYLINED_PATH/temp_stuff
 			echo -e "#!/bin/bash\ncase $(echo -e '"$selection_option"') in\n# Insert here\nesac" > $SKYLINED_PATH/temp_stuff/temp_command.sh
@@ -303,8 +309,8 @@ menu_nsp () {
 				# Find the line number of the "Insert here" comment and store it
 				num_order=$(cat $SKYLINED_PATH/temp_stuff/temp_command.sh | grep -n "# Insert here" | cut -d ":" -f 1 | tail -n 1)
 				# Then append statement after that line // this command below is insane           add quotation mark#          #make the variable execute																								End mark of sed
-				#		cat $SKYLINED_PATH/temp_stuff/temp_command.sh | sed -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔" -e "$selection_option s/$/\\\e[39m")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e $list_test | sed "$selection_option p")')\n;;\n# Insert here" | echo -e $(cat) > $SKYLINED_PATH/temp_stuff/temp_command.sh
-				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e "$list_test" | sed -n "$selection_option p")')\n$(echo -e 'selection_option=1')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
+				#                                                                                                                                        		cat $SKYLINED_PATH/temp_stuff/temp_command.sh | sed -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔" -e "$selection_option s/$/\\\e[39m")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e $list_test | sed "$selection_option p")')\n;;\n# Insert here" | echo -e $(cat) > $SKYLINED_PATH/temp_stuff/temp_command.s
+				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'base_selected_size=$(ls -hl "$HOME/skylined/input/$base_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\n$(echo -e 'selection_option=1')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
 				done
 			# At last set precalculation to true since done calculating
 			pre_calculated_romdir="true"
@@ -339,6 +345,12 @@ menu_nsp_update_pick () {
 			limit_options=$(ls $SKYLINED_PATH/input/ | grep -v "$base_selected" | grep -c .nsp)
 			# A variable that stores the value of how many files were there
 			list_test="$(ls $SKYLINED_PATH/input/ | grep -v "$base_selected" | grep .nsp)"
+			list_origin="$(ls $SKYLINED_PATH/input/ | grep -v "$base_selected" | grep .nsp)"
+	    for i_stuff in $(seq $limit_options)
+			  do
+			  calc_rom_size="$(ls -hl "$HOME/skylined/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
+			  list_test=$(echo -e "$list_test" | sed "$i_stuff s/$/ \\\ Size: $calc_rom_size/")
+			  done
 			# Make temp directory to store temporary commands
 			mkdir -p $SKYLINED_PATH/temp_stuff
 			echo -e "#!/bin/bash\ncase $(echo -e '$selection_option') in\n# Insert here\nesac" > $SKYLINED_PATH/temp_stuff/temp_command.sh
@@ -349,7 +361,7 @@ menu_nsp_update_pick () {
 				# Find the line number of the "Insert here" comment and store it
 				num_order=$(cat $SKYLINED_PATH/temp_stuff/temp_command.sh | grep -n "# Insert here" | cut -d ":" -f 1 | tail -n 1)
 				# Then append statement after that line // this command below is insane           add quotation mark#          #make the variable execute																								End mark of sed
-				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'update_selected=$(echo -e "$list_test" | sed -n "$selection_option p")')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
+				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'update_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'update_selected_size=$(ls -hl "$HOME/skylined/input/$update_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
 				done
 			# At last set precalculation to true since done calculating
 			pre_calculated_romdir="true"

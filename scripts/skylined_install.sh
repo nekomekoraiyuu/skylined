@@ -5,7 +5,7 @@
 ##### VARIABLES SECTION #######
 ##### version \\ these variables below store script version 
 installer_versioning=1
-script_versioning=1
+script_versioning=3
 ## config 
 CONFIG_DIR=~/.config/skylined
 SKYLINED_PATH=~/skylined
@@ -301,10 +301,12 @@ if [ "$arg_skip_binaries" != "true" ];
 				stuff_inst binutils
 				stuff_inst ncurses-utils
 				stuff_inst tar
+				stuff_inst bc
 		elif [ "$DISTRO_TYPE" = "ubuntu" ];
 			then
 				stuff_inst git
 				stuff_inst xxd
+				stuff_inst bc
 				stuff_inst micro
 				stuff_inst clang
 				stuff_inst cmake
