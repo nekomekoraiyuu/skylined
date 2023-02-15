@@ -177,7 +177,6 @@ if [ "$prod_present" = "true" ];
               patchednca=$(ls nca | sed -n "1p")
               mv ./"$nca_control" ./nca
               rm -rf ./exefs ./romfs
-              echo -e "inside the the $(ls nca)"
               # funny rm -rf cmd 
               rm -rf exefs romfs 
               # generate meta NCA from patched NCA and control NCA 
