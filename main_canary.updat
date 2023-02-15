@@ -5,7 +5,7 @@
 # Commands to be executed while updating
 <-----EXECUTE----->
 #### You can modify the version number below
-versioning_updater=2
+versioning_updater=3
 # Put your commands here; And it'll be executed after downloading this update file
 # Change dir into skylined dir
 cd ~/skylined/ >/dev/null
