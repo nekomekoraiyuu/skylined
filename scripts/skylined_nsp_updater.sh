@@ -62,13 +62,10 @@ if [ "$prod_present" = "true" ];
     space_avail=$(echo -e "$(df -k ~ | sed -e "s/\ \ */ /g" -ne "2p" | cut -d " " -f 4)*0.0009765625" | bc -l | sed "s/\.*0*$//")
 	# Adjust space decimal
 		space_avail=$(decimal_adjust "$space_avail" 1)
-    echo -e "Test: $space_avail"
     total_rom_size_origin=$(echo "$base_selected_size+$update_selected_size" | bc -l)
     total_rom_size_origin=$(decimal_adjust "$total_rom_size_origin" 1)
     total_rom_size=$(echo "$base_selected_size+$update_selected_size" | bc -l | echo -e "$(cat)*4.9" | bc -l)
     total_rom_size=$(decimal_adjust "$total_rom_size" 1)
-    echo -e "rom size moment: $total_rom_size ; $total_rom_size_origin"
-    echo -e "test : $(echo "$total_rom_size>$space_avail" | bc -l)"
     # Draft
     if [ $(echo "$total_rom_size>$space_avail" | bc -l) = 1 ];
       then 
@@ -79,7 +76,6 @@ if [ "$prod_present" = "true" ];
         echo -e "* Sufficient space is available; Total rom size (base + update): $total_rom_size_origin \bM\nAvailable space in storage: $space_avail \bM"
         storage_sufficient="true"
     fi
-    sleep 100
     if [ "$storage_sufficient" = "true" ];
       then
         # Tell the user rom is being updated \\ now the main script starts from here
@@ -106,96 +102,101 @@ if [ "$prod_present" = "true" ];
         # Make a temporary and build dir
         echo -e "* Making temporary directory.."
         mkdir temporary temporary_build
-        # extract base nsp
-        echo -e "* Extracting base nsp.."
-        ./hactool -t pfs0 "$base_selected" --outdir="temporary" || { echo -e "* Failed to extract base nsp; aborting."; patching_validated="false" }
+        # extract update nsp
+        echo -e "* Extracting Update nsp.."
+        ~/.switch/hactool -x -t pfs0 "$update_selected" --outdir="temporary" || { echo -e "* Failed to extract base nsp; aborting."; patching_validated="false"; }
         if [ "$patching_validated" != "false" ];
           then
           cd temporary
-          echo -e "* Defining keys from extracted base nsp.."
+          echo -e "* Defining keys from extracted update nsp.."
           def_title_keys
           # Move base nca to temporary_build directory
-          echo -e "* Moving base nca's to temporary building directory.."
-          for i in *.nca 
-            do
-              nca_type=$(~/.switch/hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
-              patch_prop=$(~/.switch/hactool $i | grep -o "Patch")
-              # If nca type is program then move it to temporary_build dir 
-              if [ "$nca_type" = "Program" ] && [ -z "$nca_base" ] && [ -n "$patch_prop" ]; 
-                then 
-                  nca_base=$i
-                  mv $i ../temporary_build
-              elif [ "$nca_type" = "Control" ] && [ -z "$nca_control" ];
-                then 
-                   nca_control=$i
-              fi
-            done
-          echo -e "* Done!"
-          rm -rf ./* && cd ..
-          # extract update nsp
-          echo -e "* Now extracting update nsp.."
-          ./hactool -t pfs0 "$update_selected" --outdir="temporary"
-          cd temporary
-          echo -e "* Defining title keys from the update nsp.."
-          def_title_keys
-          # Now move nca files to temp dir
           echo -e "* Moving update nca's to temporary building directory.."
-          for i in *.nca 
-            do
-              nca_type=$(../hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
-              # If nca type is Control and Program then move it to temporary_build dir 
-              if [ "$nca_type" = "Program" ]; 
-                then 
-                  nca_update=$i
-                  mv $i ../temporary_build
-              elif [ "$nca_type" = "Control" ];
-                then 
-                  nca_control=$i
-                  mv $i ../temporary_build
-              fi
-            done
-          echo -e "* Done"
-          rm -rf ./* && cd ..
-          # Move hacpack and hacktool to temp build dir
-          echo -e "* Moving & copying production keys, hactool and hacpack to\ntemporary building directory..."
-          mv ./hacpack ./hactool ./temporary_build/
-          cp ./prod.keys ./title.keys ./temporary_build
-          cd ./temporary_build
-          # Now get title id from base program nca 
-          echo -e "* Getting title id from base program nca;\nand making exefs and romfs directory.."
-          rom_titleid=$(./hactool "$nca_base" | grep -oP "(?<=Title ID:\s{27}).*") 
-          # Now make romfs and exefs directory and extract base NCA and update NCA to it
-          mkdir romfs exefs
-          echo -e "* Extracting base nca and update nca.."
-          ./hactool --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
-          # Remove Update nca and base
-          echo -e "* Cleaning up base and update nca.."
-          rm "$nca_update" "$nca_base"
-          # Now pack romfs and exefs into one nca  \\ 
-          echo -e "* Packing romfs and exefs.."
-          mkdir nca
-          ./hacpack --type="nca" --ncatype="program" --plaintext --exefsdir="exefs" --romfsdir="romfs" --titleid="$rom_titleid" --outdir="nca"
-          mv "$nca_control" nca 
-          patchednca=$(ls nca)
-          # funny rm -rf cmd 
-          rm -rf exefs romfs 
-          # generate meta NCA from patched NCA and control NCA 
-          ./hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nca/$patchednca" --controlnca="nca/$nca_control" --titleid="$rom_titleid" --outdir="nca" 
-          # Now repack all NCAs into one nsp 
-          mkdir nsp 
-          ./hacpack --type="nsp" --ncadir="nca" --titleid="$rom_titleid" --outdir="nsp"
-          # now move updated rom to output dir \\ also check if the user preferred to save as base game name or title id to output dir 
-         if [ "$pref_romname" = "titleid" ];
-          then
-            mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$rom_titleid[Updated].nsp"
-          elif [ "$pref_romname" = "basename" ];
-            then
-              mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
+              for i in *.nca 
+                do
+                  nca_type=$(~/.switch/hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
+                  patch_prop=$(~/.switch/hactool $i | grep -o "Patch")
+                  # If nca type is Control and Program then move it to temporary_build dir 
+                  if [ "$nca_type" = "Program" ] && [ -z "$nca_update" ] && [ -n "$patch_prop" ]; 
+                    then 
+                      nca_update=$i
+                      mv $i ~/.switch/temporary_build
+                  elif [ "$nca_type" = "Control" ] && [ -z "$nca_control" ];
+                    then 
+                      nca_control=$i
+                      mv $i ~/.switch/temporary_build
+                  fi
+                done
+          echo -e "* Done!"
+          rm -rf ./*.tik
+          cd ..
+          # extract update nsp
+          echo -e "* Now extracting base nsp.."
+          ~/.switch/hactool -x -t pfs0 "$base_selected" --outdir="temporary" || { echo -e "* Failed to extract update nsp. Aborting."; patching_validated="false"; }
+          if [ "$patching_validated" != "false" ];
+            then 
+              cd temporary
+              echo -e "* Defining title keys from the base nsp.."
+              def_title_keys
+              # Now move nca files to temp dir
+              echo -e "* Moving base nca's to temporary building directory.."
+              # stuff
+                for i in *.nca 
+                  do
+                    nca_type=$(~/.switch/hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
+                    patch_prop=$(~/.switch/hactool $i | grep -o "Patch")
+                    # If nca type is program then move it to temporary_build dir 
+                    if [ "$nca_type" = "Program" ] && [ -z "$nca_base" ] && [ -z "$patch_prop" ]; 
+                      then 
+                        nca_base=$i
+                        mv $i ~/.switch/temporary_build
+                    elif [ "$nca_type" = "Control" ] && [ -z "$nca_control" ];
+                      then 
+                          nca_control=$i
+                          mv $i ~/.switch/temporary_build
+                    fi
+                  done
+              echo -e "* Done"
+              rm -rf ~/.switch/temporary
+              cd ~/.switch/temporary_build
+              # Now get title id from base program nca 
+              echo -e "* Getting title id from base program nca;\nand making exefs and romfs directory.."
+              rom_titleid=$(~/.switch/hactool "$nca_base" | grep -oP "(?<=Title ID:\s{27}).*") 
+              # Now make romfs and exefs directory and extract base NCA and update NCA to it
+              mkdir romfs exefs
+              echo -e "* Extracting base nca and update nca.."
+              ~/.switch/hactool -x --basenca="$nca_base" $nca_update --romfsdir="romfs" --exefsdir="exefs"
+              # Remove Update nca and base
+              echo -e "* Cleaning up base and update nca.."
+              rm -rf "$nca_update" "$nca_base"
+              # Now pack romfs and exefs into one nca  \\ 
+              echo -e "* Packing romfs and exefs.."
+              mkdir nca
+              ~/.switch/hacpack --type="nca" --ncatype="program" --plaintext --exefsdir="exefs" --romfsdir="romfs" --titleid="$rom_titleid" --outdir="nca"
+             echo -e "test $(pwd)"
+              patchednca=$(ls nca | sed -n "1p")
+              mv ./"$nca_control" ./nca
+              rm -rf ./exefs ./romfs
+              echo -e "inside the the $(ls nca)"
+              # funny rm -rf cmd 
+              rm -rf exefs romfs 
+              # generate meta NCA from patched NCA and control NCA 
+              ~/.switch/hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nca/$patchednca" --controlnca="nca/$nca_control" --titleid="$rom_titleid" --outdir="nca" 
+              # Now repack all NCAs into one nsp 
+              mkdir nsp 
+              ~/.switch/hacpack --type="nsp" --ncadir="nca" --titleid="$rom_titleid" --outdir="nsp"
+              # now move updated rom to output dir \\ also check if the user preferred to save as base game name or title id to output dir 
+             if [ "$pref_romname" = "titleid" ];
+              then
+                mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$rom_titleid[Updated].nsp"
+              elif [ "$pref_romname" = "basename" ];
+                then
+                  mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
+              fi 
+              rm -rf ~/.switch/
+            fi
+              ##### End
           fi 
-          rm -rf ~/.switch
-          cd ~/skylined/
-          ##### End
-        fi
     # End of Sufficient storage check if statement
     fi
 # End of prod key check if statement 
@@ -209,7 +210,9 @@ while [ "$LOOP_CON" = "true" ];
       then
         # Reset selected base and update name
         base_selected="NULL"
+        unset base_selected_size
         update_selected="NULL"
+        unset update_selected_size
         echo -e "* Returning to menu.."
         input_valid="false"
         break
