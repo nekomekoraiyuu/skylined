@@ -138,44 +138,48 @@ limit_options=4
 echo -e "$menu_header\nPress Q To Exit"
 selection_option=$(echo -e "$selection_option")
 case "$selection_option" in
-	# Bookmark // erase this
-	1) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
-		if [ "$INPT_LAST" = "ENTER" ];
-			then 
-				# Reset input last to null
-				INPT_LAST="NULL"
-				# Then change select screen to nsp updater since its the one selected
-				selection_screen="nsp_update"
-				# Invalidate input then so the screen currently switches to nsp update 
-				input_valid="false"
-				second_loop="true"
-		fi ;;
-	2) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
-		if [ "$INPT_LAST" = "ENTER" ];
-			then
-			# Reset input last
-			INPT_LAST="NULL"
-			less $MISC_PATH/manual.txt
-		fi
-		;;
-	3) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
-		if [ "$INPT_LAST" = "ENTER" ];
-			then
-			# Reset input last
-			INPT_LAST="NULL"
-			# Change menu into Settings
-			selection_screen="settings"
-			selection_option=1
-			# Invalidate input
-			input_valid="false"
-		fi
-		;;
-	4) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
-		if [ "$INPT_LAST" = "ENTER" ];
-			then
-				INPUT_LAST="NULL"
-		fi
-		;;
+    	# Bookmark // erase this
+    	1) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
+    		if [ "$INPT_LAST" = "ENTER" ];
+    			then 
+    				# Reset input last to null
+    				INPT_LAST="NULL"
+    				# Then change select screen to nsp updater since its the one selected
+    				selection_screen="nsp_update"
+    				# Invalidate input then so the screen currently switches to nsp update 
+    				input_valid="false"
+    				second_loop="true"
+    		fi ;;
+    	2) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
+    		if [ "$INPT_LAST" = "ENTER" ];
+    			then
+    			# Reset input last
+    			INPT_LAST="NULL"
+    			less $MISC_PATH/manual.txt
+    		fi
+    		;;
+    	3) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
+    		if [ "$INPT_LAST" = "ENTER" ];
+    			then
+    			# Reset input last
+    			INPT_LAST="NULL"
+    			# Change menu into Settings
+    			selection_screen="settings"
+    			selection_option=1
+    			# Invalidate input
+    			input_valid="false"
+    		fi
+    		;;
+    	4) echo -e "$(echo -e "$main_menu_page_options" | sed "$selection_option s/^/\\\e[32m➔ /" | sed "$selection_option s/$/\\\e[39m/")"
+    		if [ "$INPT_LAST" = "ENTER" ];
+    			then
+    				INPUT_LAST="NULL"
+    				selection_screen="about"
+    				selection_option=1
+    				input_valid="false"
+    				echo -e "a"
+    		fi
+    		;;
 esac		
 }
 ##### versioning 
@@ -510,6 +514,11 @@ menu_update_script () {
       unset versioning_type
   fi
 }
+menu_about () {
+	echo -e "* This section is in w.i.p!"
+	INPT_LAST="NULL"
+	selection_screen="main"
+}
 ########### END FUNCTION #########
 ######
 #####
@@ -575,8 +584,18 @@ while [ $first_loop = "true" ];
           sleep 1 
       fi
 		fi
+		#### End settings
         # uhhh
         fi
+      ##### Aaaa About section maybe
+      if [ "$selection_screen" = "about" ];
+      	then
+      		clear
+      		menu_about
+      		sleep 1
+      fi
+      ##### End section
+      ###### End first loop thing
 		 ### NSP UPDATER SCREEN
 			while [ $second_loop = true ];
 				do
