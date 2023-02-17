@@ -35,6 +35,7 @@ decimal_adjust() {
 # Since this script is gonna be run by main script so it'll contain the main scripts uhhhh yeah variables
 ### Check if prod keys are present
 clear
+echo -e "--- Init: $(date)"
 if [ -z "$(ls $SKYLINED_PATH/input/ | grep -oh "prod.keys")" ]; then
     echo -e "* Production keys are missing! Have you put it in the correct directory with the name 'prod.keys'?"
 else
@@ -190,6 +191,7 @@ if [ "$prod_present" = "true" ]; then
                     mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$rom_titleid.nsp"
                 fi
                 rm -rf ~/.switch/
+                echo -e "---- end: $(date)"
             fi
             ##### End
         fi
