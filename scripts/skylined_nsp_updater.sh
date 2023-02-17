@@ -99,7 +99,7 @@ if [ "$prod_present" = "true" ]; then
         # extract update nsp
         echo -e "* Extracting Update nsp.."
         ~/.switch/hactool -x -t pfs0 "$update_selected" --outdir="temporary" || {
-            echo -e "* Failed to extract base nsp; aborting."
+            echo -e "* Failed to extract update nsp; aborting."
             patching_validated="false"
         }
         if [ "$patching_validated" != "false" ]; then
@@ -136,18 +136,23 @@ if [ "$prod_present" = "true" ]; then
                 # Now move nca files to temp dir
                 echo -e "* Moving base nca's to temporary building directory.."
                 # stuff
+                # Create a folder so we can compare which base nca is larger
+                mkdir check_base
                 for i in *.nca; do
                     nca_type=$(~/.switch/hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
                     patch_prop=$(~/.switch/hactool $i | grep -o "Patch")
                     # If nca type is program then move it to temporary_build dir
-                    if [ "$nca_type" = "Program" ] && [ -z "$nca_base" ] && [ -z "$patch_prop" ]; then
-                        nca_base=$i
-                        mv $i ~/.switch/temporary_build
+                    if [ "$nca_type" = "Program" ] && [ -z "$patch_prop" ]; then
+                       mv $i ./check_base
                     elif [ "$nca_type" = "Control" ] && [ -z "$nca_control" ]; then
                         nca_control=$i
                         mv $i ~/.switch/temporary_build
                     fi
                 done
+                # Now check which base nca is bigger
+                nca_base=$(ls ./check_base -lS --block-size=K | sed "s/\ \ */ /g" | cut -d " " -f 9 | head -n 2 | tail -n 1)
+                mv ./check_base/$nca_base ~/.switch/temporary_build/
+                rm -rf ~/.switch/temporary/check_base
                 echo -e "* Done"
                 rm -rf ~/.switch/temporary
                 cd ~/.switch/temporary_build
