@@ -191,6 +191,8 @@ if [ "$prod_present" = "true" ];
               elif [ "$pref_romname" = "basename" ];
                 then
                   mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$base_origin_name[Updated].nsp"
+              else
+                  mv ./nsp/"$rom_titleid.nsp" $SKYLINED_PATH/output/"$rom_titleid.nsp"
               fi 
               rm -rf ~/.switch/
             fi
