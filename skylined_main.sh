@@ -50,6 +50,11 @@ menu_header=$(echo -e "\e[1m-- \e[34mSkylined\e[39m -- $(if [ "$canary_mode" = "
 limit_options=9
 ###################################
 ######## FUNCTION (x) section #########
+# This function displays logs located in skylined_dir/logs/
+logs_show() {
+    echo -e "\n\n\n\n\n\n>console<;logs"
+    tail -n 10 $SKYLINED_PATH/logs/log_last.txt
+}
 # Make a function that saves logs to skylined directory // log folder
 logs_print() {
     echo -e "$(date +"[ %r ]; ")*" "$1" >>$SKYLINED_PATH/logs/log_last.txt
@@ -371,7 +376,7 @@ menu_nsp_sum() {
         if [ "$INPT_LAST" = "ENTER" ]; then
             INPT_LAST="NULL"
             selection_option=1
-            source $SKYLINED_PATH/scripts/skylined_nsp_updater.sh | tee $SKYLINED_PATH/logs/last.log
+            source $SKYLINED_PATH/scripts/skylined_nsp_updater.sh
             second_loop="false"
             third_loop="false"
             fourth_loop="false"
