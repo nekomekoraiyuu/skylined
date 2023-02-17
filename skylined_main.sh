@@ -7,9 +7,9 @@ state_back=0
 #### VERSION VAR
 VERSION_INFO=$(grep -h "^skylined_vers=" < ~/.config/skylined/skylined_script.conf | cut -d "=" -f 2)
 # Configuration directory stuff
-CONFIG_DIR=~/.config/skylined
-MISC_PATH=~/skylined/misc
-SKYLINED_PATH=~/skylined
+SKYLINED_PATH=$(readlink -f $(dirname "$0"))
+CONFIG_DIR=$HOME/.config/skylined
+MISC_PATH=$SKYLINED_PATH/misc
 canary_mode=$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "canary=" | cut -d "=" -f 2)
 # This variable below uhh precalculated whats in the input rom directory // to do: put desc
 pre_calculated_romdir="false"
@@ -68,8 +68,8 @@ on_interrupt () {
   rm -rf $SKYLINED_PATH/script_update_temp
   if [ "$update_status" != "OKAY" ];
     then
-      mv ~/skylined/skylined_main.sh.bak ~/skylined/skylined_main.sh 2>/dev/null
-      mv ~/skylined/scripts/skylined_nsp_updater.sh.bak  ~/skylined/scripts/skylined_nsp_updater.sh 2>/dev/null
+      mv $SKYLINED_PATH/skylined_main.sh.bak $SKYLINED_PATH/skylined_main.sh 2>/dev/null
+      mv $SKYLINED_PATH/scripts/skylined_nsp_updater.sh.bak  $SKYLINED_PATH/scripts/skylined_nsp_updater.sh 2>/dev/null
   fi 
   if [ "$term_contnt_SAR" = "true" ];
     then
@@ -300,7 +300,7 @@ menu_nsp () {
 			list_origin="$(ls $SKYLINED_PATH/input/ | grep .nsp)"
 			for i_stuff in $(seq $limit_options)
 			  do
-			  calc_rom_size="$(ls -hl "$HOME/skylined/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
+			  calc_rom_size="$(ls -hl "$SKYLINED_PATH/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
 			  list_test=$(echo -e "$list_test" | sed "$i_stuff s/$/ \\\ Size: $calc_rom_size/")
 			  done
 			# Make temp directory to store temporary commands
@@ -314,7 +314,7 @@ menu_nsp () {
 				num_order=$(cat $SKYLINED_PATH/temp_stuff/temp_command.sh | grep -n "# Insert here" | cut -d ":" -f 1 | tail -n 1)
 				# Then append statement after that line // this command below is insane           add quotation mark#          #make the variable execute																								End mark of sed
 				#                                                                                                                                        		cat $SKYLINED_PATH/temp_stuff/temp_command.sh | sed -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔" -e "$selection_option s/$/\\\e[39m")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e $list_test | sed "$selection_option p")')\n;;\n# Insert here" | echo -e $(cat) > $SKYLINED_PATH/temp_stuff/temp_command.s
-				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'base_selected_size=$(ls -hl "$HOME/skylined/input/$base_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\n$(echo -e 'selection_option=1')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
+				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'base_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'base_selected_size=$(ls -hl "$SKYLINED_PATH/input/$base_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\n$(echo -e 'selection_option=1')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
 				done
 			# At last set precalculation to true since done calculating
 			pre_calculated_romdir="true"
@@ -352,7 +352,7 @@ menu_nsp_update_pick () {
 			list_origin="$(ls $SKYLINED_PATH/input/ | grep -v "$base_selected" | grep .nsp)"
 	    for i_stuff in $(seq $limit_options)
 			  do
-			  calc_rom_size="$(ls -hl "$HOME/skylined/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
+			  calc_rom_size="$(ls -hl "$SKYLINED_PATH/input/$(echo -e "$list_test" | sed -n "$i_stuff p")" | cut -d " " -f 5)"
 			  list_test=$(echo -e "$list_test" | sed "$i_stuff s/$/ \\\ Size: $calc_rom_size/")
 			  done
 			# Make temp directory to store temporary commands
@@ -365,7 +365,7 @@ menu_nsp_update_pick () {
 				# Find the line number of the "Insert here" comment and store it
 				num_order=$(cat $SKYLINED_PATH/temp_stuff/temp_command.sh | grep -n "# Insert here" | cut -d ":" -f 1 | tail -n 1)
 				# Then append statement after that line // this command below is insane           add quotation mark#          #make the variable execute																								End mark of sed
-				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'update_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'update_selected_size=$(ls -hl "$HOME/skylined/input/$update_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
+				sed -i -e "$num_order a $i_stuff) echo -e $(echo -e '"''$(echo -e ''"$list_test" | sed -e "$selection_option s/^/\\\e[32m➔/" -e "$selection_option s/$/\\\e[39m/")"')\n$(echo -e 'if [ "$INPT_LAST" = "ENTER" ];')\nthen\n$(echo -e 'input_valid="false"')\n$(echo -e 'update_selected=$(echo -e "$list_origin" | sed -n "$selection_option p")')\n$(echo -e 'update_selected_size=$(ls -hl "$SKYLINED_PATH/input/$update_selected" | cut -d " " -f 5 | sed "s/[A-Za-z]//g")')\nfi\n;;\n# Insert here" $SKYLINED_PATH/temp_stuff/temp_command.sh
 				done
 			# At last set precalculation to true since done calculating
 			pre_calculated_romdir="true"
