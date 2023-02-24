@@ -490,6 +490,52 @@ menu_about() {
 ######
 #####
 ###### MAIN (x) script section ######
+#### Initial check ####
+# Check if some directories are present
+
+# Check if binary directory is there
+if [ -d "$SKYLINED_PATH/binaries" ];
+	then
+	# If the directory is present that check if the binaries are present
+		# Check if hactool is present
+		if [[ "$(ls $SKYLINED_PATH/binaries)" != *"hactool"* ]];
+			then
+				echo -e "* Hactool binary is missing. Please reinstall the script."
+				exit 1
+		fi
+	# Check if hacpack is present
+		if [[ "$(ls $SKYLINED_PATH/binaries)" != *"hacpack"* ]];
+			then
+				echo -e "* Hacpack binary is missing. Please reinstall the script."
+				exit 1
+		fi
+	# Check if both binaries are missing
+		if [[ "$(ls $SKYLINED_PATH/binaries)" != *"hactool"* ]] && [[ "$(ls $SKYLINED_PATH/binaries)" != *"hacpack"* ]];
+			then
+				echo -e "* Both hactool and hacpack binary is missing. Please reinstall the script."
+				exit 1
+		fi
+	# If the directory is missing
+	else
+		echo -e "* The binary directory seems to be missing; please reinstall the script."
+		exit 1
+fi
+# Check if input dir is there
+if [ ! -d "$SKYLINED_PATH/input" ];
+	then
+		mkdir -p $SKYLINED_PATH/input
+fi
+# Check if output dir is there
+if [ ! -d "$SKYLINED_PATH/output" ];
+	then
+		mkdir -p $SKYLINED_PATH/output
+fi
+# Check if log dir is there
+if [ ! -d "$SKYLINED_PATH/logs" ];
+	then
+		mkdir -p $SKYLINED_PATH/logs	
+fi
+####################
 # Print log if initiated
 #logs_print "Init"
 # Hide the cursor at first

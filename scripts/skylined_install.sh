@@ -334,6 +334,8 @@ else
     fi
 fi
 ###
+### Now create folders in skylined dir
+mkdir -p ~/skylined/input ~/skylined/output ~/skylined/binaries ~/skylined/logs
 echo -e "* Done!" && sleep 0.4
 ### todo
 echo -e "* Now setting up skylined..."
