@@ -4,7 +4,7 @@
 ![Skylined banner{caption= bruh}](https://github.com/nekomekoraiyuu/skylined/raw/assets/skylined_header.gif "Skylined banner")
 <p align="center">
 <em>
-A no joke nsp updater for skyline emulator! ✨
+A no joke, user-friendly and "high quality" nsp updater script for skyline emulator! ✨
 </em>
 </p>
 
