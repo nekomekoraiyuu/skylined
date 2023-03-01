@@ -2,26 +2,79 @@
 # (C) Markus tech & ez corps // Nekomekoraiyuu (Ignore this LINE LMAOAOA)
 # Rewrite / revision 1 : I had accidentialy deleted my previous script
 # Init
+############
+# This function logs (real) ; we need log function at the top
+log_out() {
+  ### Docs:
+  ### -d flag is for DEBUG
+  ### -e flag is for ERROR
+  ### -i flag is for INFO
+  ### -w flag is for WARN
+  ### when you use no flag the log output will show up as UNDEFINED
+  ### Please note that to use this function
+  ### You must use this format:
+  ### log_out [Script type] [Current occuring event] [Event type]
+  ### Example: log_out "installer" "device-info: foo" -d
+  ### The out put would look like this: DEBUG — [ 2:00:05 PM ]; — installer — device-info: foo
+  case $3 in
+  -d)
+    LOG_LEVEL="DEBUG"
+    ;;
+  -i)
+    LOG_LEVEL="INFO"
+    ;;
+  -e)
+    LOG_LEVEL="ERROR"
+    ;;
+  -w)
+    LOG_LEVEL="WARN"
+    ;;
+  *)
+    LOG_LEVEL="UNDEFINED"
+    ;;
+  esac
+  date +"$LOG_LEVEL — [ %r ] — $1 — $2" >> $LOGGING_PATH
+}
+#########
+log_out "installer" "Initializing the script" -i
 ##### VARIABLES SECTION #######
 ##### version \\ these variables below store script version
 installer_versioning=1
+log_out "installer" "Version: $installer_versioning" -d
 script_versioning=3
+log_out "main" "Version: $script_versioning" -d
 ## config
+LOGGING_PATH=~/skylined_inst.log
+log_out "installer" "Logging path: $LOGGING_PATH" -d
 CONFIG_DIR=~/.config/skylined
+log_out "installer:config" "Config directory: $CONFIG_DIR" -d
 SKYLINED_PATH=~/skylined
+log_out "installer:skylined" "Path: $SKYLINED_PATH" -d
 TEMP_PATH=~/skylined_installer_temp
+log_out "installer" "Temporary Path: $TEMP_PATH" -d
 EXIT_STATUS="NULL"
 ERR_STANDARD="* Failed; Perhaps try checking your\ninternet connection and try again?"
 canary_build="false"
 LOOPING="true"
 #### Check for arguments
+log_out "installer" "Checking for arguments" -i
 for i in $@; do
     case $i in
+    if [ -z "$i" ];
+      then
+      log_out "installer" "The current argument is null." -d
+      else
+        log_out "installer" "The current argument is: $i" -d
+    fi
     # An flag \\ argument to lists available flags.
     --list-args)
         echo -e "Skylined installer script flag list:\n--list-args <<< This flag prints this list.\n--canary <<< This flag enables the script to install the canary version.\n--skip-update-list <<< This flag allows you to skip updating your lists and packages on execution of the script.\n--skip-binaries <<< This flag allows you to skip downloading required binaries.\n--no-silence <<< This flag disables extra output silencing. (useful if you are impatient about smth smth like me-- lmaoaaoao)\n--skip-compile <<< This flag allows the script to skip binary compilation stage."
         exit 0
         ;;
+    # An flag to skip distro checks
+    --skip-distro)
+    	arg_skip_distro_check="true"
+    	;;
     # check if theres canary argument
     --canary)
         canary_build="true"
@@ -42,30 +95,12 @@ for i in $@; do
     *)
         echo -e "* Invalid flag; you can try using the --list-args flag to lists available flags for this script."
         sleep 0.1
+        log_out "installer" "The user entered an invalid argument: $i" -i
         ;;
     esac
 done
 #####
 #############
-######## Distro \\ CHECK #########
-# Check if its wsl/Linux (Ubuntu distro)
-if [ "$(grep -h "^ID=" /etc/os-release 2>/dev/null | cut -d "=" -f 2)" = "ubuntu" ]; then
-    # Then specify the distro name
-    DISTRO_TYPE="ubuntu"
-# Else if check if its termux
-elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -ge "01180" ]; then
-    DISTRO_TYPE="termux"
-elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -lt "01180" ]; then
-    DISTRO_TYPE="termux_outdated"
-elif [ -z "$TERMUX_VERSION" ]; then
-    if [ "$(pwd | cut -d "/" -f 4)" = "com.termux" ]; then
-        DISTRO_TYPE="termux_old"
-    fi
-# Else the distro is unknown
-else
-    DISTRO_TYPE="unknown"
-fi
-##########
 ####### FUNCTIONS SECTION #########
 # Make a function to check and install packages
 stuff_inst() {
@@ -125,77 +160,103 @@ clean_exit() {
     fi
 }
 ################
+######## Distro \\ CHECK #########
+    # Check if its wsl/Linux (Ubuntu distro)
+    if [ "$(grep -h "^ID=" /etc/os-release 2>/dev/null | cut -d "=" -f 2)" = "ubuntu" ]; then
+        # Then specify the distro name
+        DISTRO_TYPE="ubuntu"
+    # Else if check if its termux
+    elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -ge "01180" ]; then
+        DISTRO_TYPE="termux"
+    elif [ "$(echo -e "$TERMUX_VERSION" | sed 's/\.//g')" -lt "01180" ]; then
+        DISTRO_TYPE="termux_outdated"
+    elif [ -z "$TERMUX_VERSION" ]; then
+        if [ "$(pwd | cut -d "/" -f 4)" = "com.termux" ]; then
+            DISTRO_TYPE="termux_old"
+        fi
+    # Else the distro is unknown
+    else
+        DISTRO_TYPE="unknown"
+    fi
+##########
 ###### [ Main ] #######
 # execute cleanup on exit
 trap clean_exit EXIT
 # Show header (skylined indeed)
 clear
-echo -e "\e[1mSkylined installer $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY\e[39m"; fi) - nekomekoraiyuu &\n markus tech\n____________________\e[22m"
+echo -e "\e[1mSkylined installer $(if [ "$canary_build" = "true" ]; then echo -e "\e[33mCANARY\e[39m"; fi) - nekomekoraiyuu &\nmarkus tech\n____________________\e[22m" && log_out "installer" "printed out the heading" -i
 sleep 1
 ####### DISTRO CHECK ###### (again)
-# If The uses uses old termux version do not start the script.
-if [ "$DISTRO_TYPE" = "termux_old" ]; then
-    echo -e "* Old termux version detected (Last playstore release?);\nYou have to use the latest version of termux to install the script.;\nDo you want to download the recommended termux version? [Y/N]"
-    while [ "$LOOPING" = "true" ]; do
-        # Read input
-        read -rsn1 ASK_INPUT
-        case $ASK_INPUT in
-        [yY])
-            # Check if newer version of termux was downloaded before
-            if [ -z $(ls ~ | grep -oh "termux_git.apk") ]; then
-                echo -e "* Downloading the recommended termux version: 0.118.0 from Github;\nPlease wait..."
-                sleep 0.5
-                curl -SLo ~/termux_git.apk https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk || {
-                    echo -e "* Failed to download!\nPlease try checking your internet connection."
-                    rm -rf ~/termux_git.apk
+if [ "$arg_skip_distro_check" != "true" ];
+  then
+    # If The uses uses old termux version do not start the script.
+    if [ "$DISTRO_TYPE" = "termux_old" ]; then
+        echo -e "* Old termux version detected (Last playstore release?);\nYou have to use the latest version of termux to install the script.;\nDo you want to download the recommended termux version? [Y/N]"
+        while [ "$LOOPING" = "true" ]; do
+            # Read input
+            read -rsn1 ASK_INPUT
+            case $ASK_INPUT in
+            [yY])
+                # Check if newer version of termux was downloaded before
+                if [ -z $(ls ~ | grep -oh "termux_git.apk") ]; then
+                    echo -e "* Downloading the recommended termux version: 0.118.0 from Github;\nPlease wait..."
+                    sleep 0.5
+                    curl -SLo ~/termux_git.apk https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_universal.apk || {
+                        echo -e "* Failed to download!\nPlease try checking your internet connection."
+                        rm -rf ~/termux_git.apk
+                        exit 1
+                    }
+                    echo -e "* Download successful!\nPlease allow access files permission to save the downloaded apk file to downloads directory."
+                    sleep 0.8
+                else
+                    echo -e "* Downloaded newer version of termux found in ~ directory!;\nTrying to move it into downloads directory.."
+                    sleep 0.7
+                fi
+                # Check if storage dir exists
+                if [ -z $(ls ~ | grep -oh "storage") ]; then
+                    termux-setup-storage <<<y
+                fi
+                cp ~/termux_git.apk ~/storage/downloads/ || {
+                    echo -e "* Failed to copy to downloads directory; perhaps you haven't given termux access files permission?\nIf so please give access files permission and re-run the script!"
                     exit 1
                 }
-                echo -e "* Download successful!\nPlease allow access files permission to save the downloaded apk file to downloads directory."
-                sleep 0.8
-            else
-                echo -e "* Downloaded newer version of termux found in ~ directory!;\nTrying to move it into downloads directory.."
-                sleep 0.7
-            fi
-            # Check if storage dir exists
-            if [ -z $(ls ~ | grep -oh "storage") ]; then
-                termux-setup-storage <<<y
-            fi
-            cp ~/termux_git.apk ~/storage/downloads/ || {
-                echo -e "* Failed to copy to downloads directory; perhaps you haven't given termux access files permission?\nIf so please give access files permission and re-run the script!"
+                echo -e "* File has been saved to '[Internal Storage]/downloads/termux_git.apk' directory!;\nPlease uninstall the current termux app and install it from the saved directory."
+                exit 0
+                ;;
+            [nN])
+                echo -e "* Cancelled. To get the latest termux version please use these official links;\nGithub: https://github.com/termux/termux-app/releases\nFdroid: https://f-droid.org/en/packages/com.termux/"
                 exit 1
-            }
-            echo -e "* File has been saved to '[Internal Storage]/downloads/termux_git.apk' directory!;\nPlease uninstall the current termux app and install it from the saved directory."
-            exit 0
-            ;;
-        [nN])
-            echo -e "* Cancelled. To get the latest termux version please use these official links;\nGithub: https://github.com/termux/termux-app/releases\nFdroid: https://f-droid.org/en/packages/com.termux/"
+                ;;
+            esac
+        done
+    # If use newer termux version then only print; Using termux
+    elif [ "$DISTRO_TYPE" = "termux" ]; then
+        echo -e "* Termux detected; Proceeding with the script."
+        sleep 0.3
+        # Check if the user is root \\ if then exit.
+        if [ "$(id -u)" -eq 0 ]; then
+            echo -e "* Please do not run the script as root in termux;\nPlease run the script without root. (Without sudo)"
             exit 1
-            ;;
-        esac
-    done
-# If use newer termux version then only print; Using termux
-elif [ "$DISTRO_TYPE" = "termux" ]; then
-    echo -e "* Termux detected; Proceeding with the script."
-    sleep 0.3
-    # Check if the user is root \\ if then exit.
-    if [ "$(id -u)" -eq 0 ]; then
-        echo -e "* Please do not run the script as root in termux;\nPlease run the script without root. (Without sudo)"
+        fi
+    fi
+    ###
+    ##### If wsl/Linux (Ubuntu) detected
+    if [ "$DISTRO_TYPE" = "ubuntu" ]; then
+        echo -e "* WSL/Linux (Ubuntu Distribution) detected; Proceeding with the script."
+        # Check if running as root \\ sudo
+        if [ "$(id -u)" -ne 0 ]; then
+            echo "* Please run the script as root! (use with sudo)"
+            exit 1
+        fi
+    elif [ "$DISTRO_TYPE" = "unknown" ]; then
+        echo -e "* WSL/Linux detected;\nbut looks like the script doesn't support your current distribution;\nPlease make a issue in the github repository to add support for your current distro.\nThank you--"
         exit 1
     fi
+ # Aaa
+  else
+    echo -e "* Skipping distro check due to; --skip-distro flag!"
 fi
-###
-##### If wsl/Linux (Ubuntu) detected
-if [ "$DISTRO_TYPE" = "ubuntu" ]; then
-    echo -e "* WSL/Linux (Ubuntu Distribution) detected; Proceeding with the script."
-    # Check if running as root \\ sudo
-    if [ "$(id -u)" -ne 0 ]; then
-        echo "* Please run the script as root! (use with sudo)"
-        exit 1
-    fi
-elif [ "$DISTRO_TYPE" = "unknown" ]; then
-    echo -e "* WSL/Linux detected;\nbut looks like the script doesn't support your current distribution;\nPlease make a issue in the github repository to add support for your current distro.\nThank you--"
-    exit 1
-fi
+# End arg
 #####
 ## Check if skylined was finished installing before
 if [ "$(cat $CONFIG_DIR/skylined_script.conf 2>/dev/null | grep -h "has_skylined_installer_finished_install" | cut -d "=" -f 2)" = "true" ]; then
