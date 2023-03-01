@@ -1,3 +1,16 @@
+---
+
+
+![Skylined banner{caption= bruh}](https://github.com/nekomekoraiyuu/skylined/raw/assets/skylined_header.gif "Skylined banner")
+<p align="center">
+<em>
+A no joke nsp updater for skyline emulator! ✨
+</em>
+</p>
+
+![skylined branch](https://img.shields.io/badge/branch-main-informational) ![programming lang](https://img.shields.io/badge/made%20in-bash-important) ![license](https://img.shields.io/badge/license-GPLV3-critical)
+![skylined version](https://img.shields.io/badge/version-1-green) ![funding moment](https://img.shields.io/badge/funding-markus%20tech-9cf)
+---
 
 # Table of contents:
 
