@@ -44,31 +44,35 @@ log_out "installer" "Version: $installer_versioning" -d
 script_versioning=3
 log_out "main" "Version: $script_versioning" -d
 ## config
-LOGGING_PATH=~/skylined_inst.log
-log_out "installer" "Logging path: $LOGGING_PATH" -d
+LOGGING_PATH=~/"$(date +"%d/%m/%y--")"skylined_inst.log
 CONFIG_DIR=~/.config/skylined
-log_out "installer:config" "Config directory: $CONFIG_DIR" -d
 SKYLINED_PATH=~/skylined
-log_out "installer:skylined" "Path: $SKYLINED_PATH" -d
 TEMP_PATH=~/skylined_installer_temp
-log_out "installer" "Temporary Path: $TEMP_PATH" -d
 EXIT_STATUS="NULL"
 ERR_STANDARD="* Failed; Perhaps try checking your\ninternet connection and try again?"
 canary_build="false"
 LOOPING="true"
+####### LOGGING (SECTION 1) - BASIC INFOS
+log_out "installer" "Logging path: $LOGGING_PATH" -d
+log_out "installer:config" "Config directory: $CONFIG_DIR" -d
+log_out "installer:skylined" "Path: $SKYLINED_PATH" -d
+log_out "installer" "Temporary Path: $TEMP_PATH" -d
+#############
 #### Check for arguments
 log_out "installer" "Checking for arguments" -i
-for i in $@; do
-    case $i in
+for i in "$@"; do
+# Check if argument empty or not
     if [ -z "$i" ];
       then
-      log_out "installer" "The current argument is null." -d
+      	log_out "installer" "The current argument is null." -d
       else
-        log_out "installer" "The current argument is: $i" -d
+      	log_out "installer" "The current argument is: $i" -d
     fi
+    case $i in
     # An flag \\ argument to lists available flags.
     --list-args)
         echo -e "Skylined installer script flag list:\n--list-args <<< This flag prints this list.\n--canary <<< This flag enables the script to install the canary version.\n--skip-update-list <<< This flag allows you to skip updating your lists and packages on execution of the script.\n--skip-binaries <<< This flag allows you to skip downloading required binaries.\n--no-silence <<< This flag disables extra output silencing. (useful if you are impatient about smth smth like me-- lmaoaaoao)\n--skip-compile <<< This flag allows the script to skip binary compilation stage."
+        log_out "installer" "Listing available arguments as requested by the user due to: --list-args flag And exiting the program" -i
         exit 0
         ;;
     # An flag to skip distro checks
@@ -106,41 +110,68 @@ done
 stuff_inst() {
     # Make a variable that stores value from arg
     specified_pkg=$1
+    log_out "installer:install-deps" "Specified package: $specified_pkg" -i
     # Check if the pkg is installed
     if [[ -z "$(apt list --installed 2>/dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" ]]; then
         echo -e "$specified_pkg is not installed [ x ]; Installing"
+        log_out "installer:install-deps" "The specified package: $specified_pkg ; Is not installed, trying to install it" -i
+        log_out "installer:install-deps" "Checking if the specified package: $specified_pkg is available in current repository" -i
         # If not installed  Check if that package is in the repository
         if [ "$(apt search $specified_pkg 2>/dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" = "$specified_pkg" ]; then
             sleep 0.2
-            apt-get -y -o Dpkg::Options::="--force-confnew" install "$specified_pkg" 2>/dev/null
+	        log_out "installer:install-deps" "The specified package: $specified_pkg is available in current repository; trying to install it" -i
+            apt-get -y -o Dpkg::Options::="--force-confnew" install "$specified_pkg" 2>/dev/null || {
+        		log_out "installer:install-deps" "Failed to install the specified package: $specified_pkg" -e
+            }
         else
             # If the package is not available in the repository then prompt the user to change
+        	log_out "installer:install-deps" "The specified package: $specified_pkg is not available in current repository; trying to switch the repository" -i
             echo -e "The package $specified_pkg is not available in your current repository.. Do you want to switch?\b[Enter] to switch, [no] to cancel switching; exit"
+            log_out "installer:install-deps" "Asking the user for input to switch repository" -i
             read -re ASK_CHOICE
             if [[ -z "$ASK_CHOICE" ]]; then
+				log_out "installer:install-deps" "The user has entered Zero byte character; Assuming yes" -i
                 #  Aaaaaaa
                 if [ "$DISTRO_TYPE" = "termux" ]; then
+                log_out "installer:install-deps:termux" "Initiating to switch the repository" -i
                     termux-switch-repo
                 elif [ "$DISTRO_TYPE" = "ubuntu" ]; then
                     echo -e "* Switching via cli is not implemented in this script;\nYou can change repository using GUI from settings in ubuntu"
                     exit 1
                 fi
-                apt-get update 2>/dev/null
-                apt-get -y -o Dpkg::Options::="--force-confnew" install $specified_pkg 2>/dev/null
+                log_out "installer:install-deps" "Updating the lists" -i
+                apt-get update 2>/dev/null || {
+                	log_out "installer:install-deps" "Failed to update lists" -i ;
+                	exit 1 ;
+                }
+                apt-get -y -o Dpkg::Options::="--force-confnew" install $specified_pkg 2>/dev/null || {
+           			log_out "installer:install-deps" "Failed to install the specified package: $specified_pkg" -i ;
+           			exit 1 ;
+                }
             else
-                echo -e "* Canceled switching repositories; The Package $specific_pkg is not available in current repository; Aborting installation"
+            	log_out "installer:install-deps" "The user has entered something other than non zero as input; exiting the script" -i
+                echo -e "* Cancelled switching repositories; The Package $specific_pkg is not available in current repository; Aborting installation"
                 exit 1
             fi
         fi
-
+        #### First if statement ends below ###
+      	else
+     		echo -e "$specified_pkg is installed [ √ ]"
+     		state_installed="true"
     fi
     # Double check if it was installed
-    if [[ -z "$(apt list --installed 2>/dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" ]]; then
-        echo -e "$specified_pkg was not installed [ x ]; aborting"
-        exit 1
-    else
-        echo -e "$specified_pkg has been installed [ √ ]"
-    fi
+   	if	[ "$state_installed" != "true" ];
+   		then
+    		if [[ -z "$(apt list --installed 2>/dev/null | grep -oh "^$specified_pkg/" | cut -d "/" -f 1)" ]]; then
+        		echo -e "$specified_pkg was not installed [ x ]; aborting"
+        		exit 1
+		    else
+        		echo -e "$specified_pkg has been installed [ √ ]"
+		    fi
+		# If install state is true then unset it to false again
+		else
+			state_installed="false"		
+	fi
 }
 # Make a function that does clean up on exit
 clean_exit() {
