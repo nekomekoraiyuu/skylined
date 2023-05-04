@@ -8,7 +8,7 @@ A no joke, user-friendly and "high quality" nsp updater script for skyline emula
 </em>
 </p>
 
-![skylined branch](https://img.shields.io/badge/branch-canary-yellow) ![programming lang](https://img.shields.io/badge/made%20in-bash-important) ![license](https://img.shields.io/badge/license-GPLV3-critical)
+![skylined branch](https://img.shields.io/badge/branch-main-blue) ![programming lang](https://img.shields.io/badge/made%20in-bash-important) ![license](https://img.shields.io/badge/license-GPLV3-critical)
 ![skylined version](https://img.shields.io/badge/version-1-green) ![funding moment](https://img.shields.io/badge/funding-markus%20tech-9cf)
 ---
 
@@ -54,7 +54,7 @@ The result is this script!
 To install in termux just copy paste this command and the installation script will do everything for you:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh) --canary
+bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/main/scripts/skylined_install.sh)
 ```
 
 ## WSL/Linux:
@@ -85,7 +85,7 @@ This will install curl binary for you;
 If you already have `curl` installed or have it installed you can now finally run this command to install `skylined`:
 
 ```bash
-sudo bash -c "bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh) --canary"
+sudo bash -c "bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/main/scripts/skylined_install.sh)"
 ```
 
 No need to worry about anything the script will do everything automatically for you
@@ -106,7 +106,7 @@ To install this script you must have these dependencies installed:
 If you have these all installed you can install `skylined` by typing out this command:
 
 ```bash
-sudo bash -c "bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/canary/scripts/skylined_install.sh) --canary --skip-distro --skip-binaries"
+sudo bash -c "bash <(curl -s https://raw.githubusercontent.com/nekomekoraiyuu/skylined/main/scripts/skylined_install.sh) --skip-distro --skip-binaries"
 ```
 <a id="docs" />
 
