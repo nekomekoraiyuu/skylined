@@ -1,3 +1,5 @@
+# NOTICE:
+## SKYLINED IS NOW DEPRECATED!!!! Please use [yanu!](https://github.com/nozwock/yanu)
 ---
 
 
